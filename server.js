@@ -1,22 +1,35 @@
 const express = require('express');
 const cors = require('cors');
+const { Pool } = require('pg');
 
 const app = express();
 app.use(cors());
 
-// TEST ROUTE (no database yet)
-app.get('/leaderboard/avg', (req, res) => {
-  res.json([
-    {
-      first_name: "Test",
-      last_name: "Player",
-      grade: "First Grade",
-      avg: 0.500
-    }
-  ]);
+// ✅ NEW DATABASE CONNECTION (Supabase)
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
 
-// IMPORTANT for Render (uses dynamic port)
+// ✅ REAL DATA ROUTE
+app.get('/leaderboard/avg', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT *
+      FROM player_advanced_stats
+      WHERE pa >= (games_played * 2.2)
+      ORDER BY avg DESC
+      LIMIT 10
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Server error');
+  }
+});
+
+// REQUIRED FOR RENDER
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
