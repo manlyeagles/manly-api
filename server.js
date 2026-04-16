@@ -5,7 +5,7 @@ const { Pool } = require('pg');
 const app = express();
 app.use(cors());
 
-// ✅ NEW DATABASE CONNECTION (Supabase)
+// ✅ DATABASE CONNECTION
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
