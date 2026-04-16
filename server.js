@@ -4,6 +4,6 @@ app.get('/leaderboard/avg', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error('FULL ERROR:', err);
-    res.status(500).json(err); // 👈 ONLY this
+    res.status(500).json(err); // 
   }
 });
