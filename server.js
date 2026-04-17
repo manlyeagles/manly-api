@@ -1,9 +1,9 @@
 const express = require('express');
-const { Client } = require('pg');
+const { Pool } = require('pg');
 
 const app = express();
 
-const client = new Client({
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
@@ -12,16 +12,10 @@ const client = new Client({
 
 app.get('/leaderboard/avg', async (req, res) => {
   try {
-    await client.connect();
-    const result = await client.query('SELECT 1');
-    await client.end();
+    const result = await pool.query('SELECT * FROM player_advanced_stats LIMIT 10');
     res.json(result.rows);
   } catch (err) {
-    res.status(500).json({
-      message: err.message,
-      code: err.code,
-      full: err
-    });
+    res.status(500).json(err);
   }
 });
 
