@@ -15,11 +15,7 @@ app.get('/leaderboard/avg', async (req, res) => {
     const result = await pool.query('SELECT 1');
     res.json(result.rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: err.message,
-      code: err.code
-    });
+    res.status(500).json(err);
   }
 });
 
