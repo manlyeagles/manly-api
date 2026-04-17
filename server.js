@@ -10,10 +10,16 @@ const pool = new Pool({
 
 app.get('/leaderboard/avg', async (req, res) => {
   try {
-    const result = await pool.query('SELECT COUNT(*) FROM player_advanced_stats');
-    res.json(result.rows);
+    const result = await pool.query('SELECT NOW()');
+    res.json({
+      success: true,
+      data: result.rows
+    });
   } catch (err) {
-    res.status(500).json(err);
+    res.json({
+      success: false,
+      error: err.message
+    });
   }
 });
 
