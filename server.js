@@ -5,14 +5,16 @@ const app = express();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
+  ssl: { rejectUnauthorized: false }
 });
 
 app.get('/leaderboard/avg', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM player_advanced_stats LIMIT 10');
+    const result = await pool.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+    `);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json(err);
