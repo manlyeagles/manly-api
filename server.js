@@ -4,7 +4,10 @@ const { Pool } = require('pg');
 const app = express();
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 app.get('/leaderboard/avg', async (req, res) => {
@@ -13,7 +16,10 @@ app.get('/leaderboard/avg', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(err);
-    res.status(500).json(err);
+    res.status(500).json({
+      message: err.message,
+      code: err.code
+    });
   }
 });
 
