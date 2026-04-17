@@ -10,11 +10,7 @@ const pool = new Pool({
 
 app.get('/leaderboard/avg', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public'
-    `);
+    const result = await pool.query('SELECT COUNT(*) FROM player_advanced_stats');
     res.json(result.rows);
   } catch (err) {
     res.status(500).json(err);
