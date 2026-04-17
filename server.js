@@ -5,20 +5,19 @@ const app = express();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 app.get('/leaderboard/avg', async (req, res) => {
   try {
     const result = await pool.query('SELECT NOW()');
-    res.json({
-      success: true,
-      data: result.rows
-    });
+    res.json(result.rows);
   } catch (err) {
-    res.json({
-      success: false,
-      error: err.message
+    res.status(500).json({
+      error: err.message,
+      code: err.code
     });
   }
 });
