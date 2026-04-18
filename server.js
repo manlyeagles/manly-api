@@ -1,10 +1,3 @@
-const express = require('express');
-
-const app = express();
-
-const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
-
 app.get('/leaderboard/view', async (req, res) => {
   try {
     const response = await fetch(
@@ -53,10 +46,4 @@ app.get('/leaderboard/view', async (req, res) => {
   } catch (err) {
     res.send(err.toString());
   }
-});
-
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
-  console.log(`API running on port ${PORT}`);
 });
