@@ -34,7 +34,7 @@ app.get('/leaderboard/view', async (req, res) => {
 
     res.send(`
       <html>
-        <body style="font-family: Arial; padding:20px;">
+        <body>
           <table border="1" style="width:100%; border-collapse: collapse;">
             <thead>
               <tr>
