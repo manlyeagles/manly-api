@@ -1,3 +1,5 @@
+console.log("NEW CODE DEPLOYED");
+
 const express = require('express');
 
 const app = express();
@@ -35,6 +37,7 @@ app.get('/leaderboard/view', async (req, res) => {
     res.send(`
       <html>
         <body>
+          <h2>LIVE DATA</h2>
           <table border="1" style="width:100%; border-collapse: collapse;">
             <thead>
               <tr>
