@@ -1,24 +1,27 @@
 const express = require('express');
-const { Pool } = require('pg');
+const fetch = require('node-fetch');
 
 const app = express();
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
+const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 app.get('/leaderboard/avg', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.json(result.rows);
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/player_advanced_stats?select=*`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const data = await response.json();
+    res.json(data);
   } catch (err) {
-    res.status(500).json({
-      error: err.message,
-      code: err.code
-    });
+    res.status(500).json(err);
   }
 });
 
