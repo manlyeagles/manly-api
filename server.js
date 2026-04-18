@@ -1,14 +1,7 @@
-const express = require('express');
-
-const app = express();
-
-const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
-
 app.get('/leaderboard/avg', async (req, res) => {
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/player_advanced_stats?select=*`,
+      `${SUPABASE_URL}/rest/v1/player_advanced_stats?select=*&pa=gte.20&order=avg.desc&limit=10`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -22,10 +15,4 @@ app.get('/leaderboard/avg', async (req, res) => {
   } catch (err) {
     res.status(500).json(err);
   }
-});
-
-const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
-  console.log(`API running on port ${PORT}`);
 });
