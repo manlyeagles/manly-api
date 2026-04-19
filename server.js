@@ -19,8 +19,8 @@ app.get('/leaderboard/view', async (req, res) => {
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '2025/26';
 
-    const response = await fetch(
-  `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players(first_name,last_name,grade),seasons(season_name)&order=${stat}.${order}`,
+   const response = await fetch(
+  `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name),seasons(season_name)&order=${stat}.${order}`,
   {
     headers: {
       apikey: SUPABASE_KEY,
