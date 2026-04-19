@@ -7,7 +7,6 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 const formatStat = (key, value) => {
   if (value === null || value === undefined) return '';
   const num = Number(value);
-
   if (['AVG','OBP','SLG','OPS','BA/RISP','QABpct','BABIP','SBpct'].includes(key)) {
     return num.toFixed(3);
   }
@@ -31,10 +30,6 @@ app.get('/leaderboard/view', async (req, res) => {
     );
 
     const data = await response.json();
-
-    if (!Array.isArray(data)) {
-      return res.send(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
-    }
 
     const toggleOrder = (col) =>
       (stat === col && order === 'desc') ? 'asc' : 'desc';
@@ -97,8 +92,6 @@ app.get('/leaderboard/view', async (req, res) => {
         <body style="font-family:Arial; margin:0; padding:10px;">
 
         <style>
-          body { margin:0; }
-
           .table-container {
             height: 80vh;
             overflow: auto;
@@ -115,12 +108,10 @@ app.get('/leaderboard/view', async (req, res) => {
           thead th {
             position: sticky;
             top: 0;
-            z-index: 50;
+            z-index: 100;
             background: #800000;
             color: #fff;
-            padding: 10px 12px;
-            white-space: nowrap;
-            border-bottom: 2px solid #ccc;
+            padding: 10px;
             text-align: center;
           }
 
@@ -132,62 +123,68 @@ app.get('/leaderboard/view', async (req, res) => {
           /* BODY */
           tbody td {
             padding: 6px 10px;
-            white-space: nowrap;
             text-align: center;
             background: #fff;
           }
 
-          /* NAME LEFT ALIGN */
           .name {
             text-align: left;
           }
 
-          /* JERSEY CENTER + SMALL */
           .jersey {
             text-align: center;
             font-weight: bold;
           }
 
-          /* COLUMN WIDTHS (REDUCED) */
+          /* FIXED WIDTHS */
           th:nth-child(1), td:nth-child(1) { min-width: 50px; }
           th:nth-child(2), td:nth-child(2) { min-width: 120px; }
           th:nth-child(3), td:nth-child(3) { min-width: 120px; }
 
-          /* 🔒 FREEZE ONLY FIRST 3 COLUMNS */
-          tbody td:nth-child(1),
+          /* FREEZE ONLY FIRST 3 COLUMNS (BODY ONLY) */
+          tbody td:nth-child(1) {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background: #fff;
+          }
+
+          tbody td:nth-child(2) {
+            position: sticky;
+            left: 50px;
+            z-index: 10;
+            background: #fff;
+          }
+
+          tbody td:nth-child(3) {
+            position: sticky;
+            left: 170px;
+            z-index: 10;
+            background: #fff;
+          }
+
+          /* HEADER FREEZE MATCH (keeps color) */
           thead th:nth-child(1) {
             position: sticky;
             left: 0;
-            z-index: 40;
-            background: #fff;
+            z-index: 110;
           }
 
-          tbody td:nth-child(2),
           thead th:nth-child(2) {
             position: sticky;
             left: 50px;
-            z-index: 40;
-            background: #fff;
+            z-index: 110;
           }
 
-          tbody td:nth-child(3),
           thead th:nth-child(3) {
             position: sticky;
             left: 170px;
-            z-index: 40;
-            background: #fff;
+            z-index: 110;
           }
 
-          /* KEEP HEADER ABOVE EVERYTHING */
-          thead th {
-            z-index: 60;
-          }
-
-          /* ROW HOVER */
           tbody tr:hover {
             background: rgba(128,0,0,0.05);
           }
-
         </style>
 
         <div class="table-container">
@@ -237,9 +234,7 @@ app.get('/leaderboard/view', async (req, res) => {
                 <th>${header('SBpct','SB%')}</th>
               </tr>
             </thead>
-            <tbody>
-              ${rows}
-            </tbody>
+            <tbody>${rows}</tbody>
           </table>
         </div>
 
@@ -253,7 +248,6 @@ app.get('/leaderboard/view', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-
 app.listen(PORT, () => {
   console.log("API running on port " + PORT);
 });
