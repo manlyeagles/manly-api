@@ -306,6 +306,7 @@ app.get('/leaderboard/view', async (req, res) => {
 
         </body>
       </html>
+    `);
   } catch (err) {
     res.send(err.toString());
   }
