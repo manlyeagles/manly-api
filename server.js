@@ -15,81 +15,94 @@ const formatStat = (key, value) => {
 
 app.get('/leaderboard/view', async (req, res) => {
   try {
-    const stat = req.query.stat || 'AVG';
+    const stat = (req.query.stat || 'avg').toLowerCase();
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '2025/26';
 
-   const response = await fetch(
-  `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name),seasons(season_name)&order=${stat}.${order}`,
-  {
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name,grade)&order=${stat}.${order}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const text = await response.text();
+    let data;
+
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return res.send(text);
     }
-  }
-);
 
-const data = await response.json();
+    if (!Array.isArray(data)) {
+      return res.send(JSON.stringify(data));
+    }
 
-if (!Array.isArray(data)) {
-  console.log('ERROR RESPONSE:', data);
-  return res.send('Data error');
-}
     const toggleOrder = (col) =>
       (stat === col && order === 'desc') ? 'asc' : 'desc';
 
     const header = (col, label = col) =>
-      `<a href="?stat=${encodeURIComponent(col)}&order=${toggleOrder(col)}&season=${season}">${label}</a>`;
+      `<a href="?stat=${encodeURIComponent(col.toLowerCase())}&order=${toggleOrder(col.toLowerCase())}&season=${season}">${label}</a>`;
 
     let rows = '';
 
     data.forEach((p) => {
       rows += `
         <tr>
-          <td class="jersey">${p.jersey_number || ''}</td>
-          <td class="name">${p.players?.first_name || ''}</td>
-          <td class="name">${p.players?.last_name || ''}</td>
-          <td>${p.seasons?.season_name || ''}</td>
+          <td>${p.jersey_number || ''}</td>
+          <td>${p.players?.first_name || ''}</td>
+          <td>${p.players?.last_name || ''}</td>
+          <td>${p.season_id || ''}</td>
           <td>${p.players?.grade || ''}</td>
 
-          <td>${p.GP || 0}</td>
-          <td>${p.PA || 0}</td>
-          <td>${p.AB || 0}</td>
-          <td>${p.H || 0}</td>
-          <td>${p['1B'] || 0}</td>
-          <td>${p['2B'] || 0}</td>
-          <td>${p['3B'] || 0}</td>
-          <td>${p.HR || 0}</td>
-          <td>${p.RBI || 0}</td>
-          <td>${p.R || 0}</td>
-          <td>${p.SO || 0}</td>
-          <td>${p.KL || 0}</td>
-          <td>${p.BB || 0}</td>
-          <td>${p.HBP || 0}</td>
-          <td>${p.ROE || 0}</td>
-          <td>${p.FC || 0}</td>
-          <td>${p.CI || 0}</td>
+          <td>${p.gp || 0}</td>
+          <td>${p.pa || 0}</td>
+          <td>${p.ab || 0}</td>
+          <td>${p.h || 0}</td>
+          <td>${p["1B"] || 0}</td>
+          <td>${p["2B"] || 0}</td>
+          <td>${p["3B"] || 0}</td>
+          <td>${p.hr || 0}</td>
+          <td>${p.rbi || 0}</td>
+          <td>${p.r || 0}</td>
+          <td>${p.so || 0}</td>
+          <td>${p.kl || 0}</td>
+          <td>${p.bb || 0}</td>
+          <td>${p.hbp || 0}</td>
+          <td>${p.roe || 0}</td>
+          <td>${p.fc || 0}</td>
+          <td>${p.ci || 0}</td>
 
-          <td>${formatStat('AVG', p.AVG)}</td>
-          <td>${formatStat('OBP', p.OBP)}</td>
-          <td>${formatStat('SLG', p.SLG)}</td>
-          <td>${formatStat('OPS', p.OPS)}</td>
-          <td>${formatStat('BA/RISP', p['BA/RISP'])}</td>
+          <td>${formatStat('AVG', p.avg)}</td>
+          <td>${formatStat('OBP', p.obp)}</td>
+          <td>${formatStat('SLG', p.slg)}</td>
+          <td>${formatStat('OPS', p.ops)}</td>
+          <td>${formatStat('BA/RISP', p['bawrisp'])}</td>
 
-          <td>${p.SAC || 0}</td>
-          <td>${p.SF || 0}</td>
-          <td>${p.LOB || 0}</td>
-          <td>${p.PIK || 0}</td>
-          <td>${p.QAB || 0}</td>
-          <td>${formatStat('QABpct', p.QABpct)}</td>
-          <td>${formatStat('BABIP', p.BABIP)}</td>
+          <td>${p.sac || 0}</td>
+          <td>${p.sf || 0}</td>
+          <td>${p.lob || 0}</td>
+          <td>${p.pik || 0}</td>
+          <td>${p.qab || 0}</td>
+          <td>${formatStat('QABpct', p.qabpct)}</td>
+          <td>${formatStat('BABIP', p.babip)}</td>
 
-          <td>${p.SB || 0}</td>
-          <td>${p.CS || 0}</td>
-          <td>${formatStat('SBpct', p.SBpct)}</td>
+          <td>${p.sb || 0}</td>
+          <td>${p.cs || 0}</td>
+          <td>${formatStat('SBpct', p.sbpct)}</td>
         </tr>
       `;
     });
+
+    res.send(`<table>${rows}</table>`);
+  } catch (err) {
+    res.send(err.toString());
+  }
+});
 
     res.send(`
 <html>
