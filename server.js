@@ -6,15 +6,12 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 const formatStat = (key, value) => {
   if (value === null || value === undefined) return 0;
-
   const num = Number(value);
 
-  // ERA → 2 decimal places
   if (key === 'ERA') return num.toFixed(2);
-
-  // AVG/OBP/SLG/OPS → 3 decimal places
-  if (['AVG', 'OBP', 'SLG', 'OPS'].includes(key)) return num.toFixed(3);
-
+  if (['AVG','OBP','SLG','OPS','BA/RISP','QABpct','BABIP','SBpct'].includes(key)) {
+    return num.toFixed(3);
+  }
   return num;
 };
 
@@ -25,7 +22,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const season = req.query.season || 1;
 
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${season}&select=player_id,season_id,"AB","H","HR","RBI","OPS","AVG",players(first_name,last_name,grade),seasons(season_name)&order=${stat}.${order}`,
+      `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${season}&select=*,players(first_name,last_name,grade),seasons(season_name)&order=${stat}.${order}`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -44,6 +41,9 @@ app.get('/leaderboard/view', async (req, res) => {
       return (stat === col && order === 'desc') ? 'asc' : 'desc';
     };
 
+    const header = (col) =>
+      `<a href="?stat=${col}&order=${toggleOrder(col)}&season=${season}">${col}</a>`;
+
     let rows = '';
 
     data.forEach((p, i) => {
@@ -53,32 +53,63 @@ app.get('/leaderboard/view', async (req, res) => {
           <td>${p.players?.first_name || ''} ${p.players?.last_name || ''}</td>
           <td>${p.players?.grade || ''}</td>
           <td>${p.seasons?.season_name || ''}</td>
-          <td>${formatStat('AVG', p.AVG)}</td>
+
+          <td>${formatStat('PA', p.PA)}</td>
+          <td>${formatStat('AB', p.AB)}</td>
+          <td>${formatStat('H', p.H)}</td>
+          <td>${formatStat('1B', p['1B'])}</td>
+          <td>${formatStat('2B', p['2B'])}</td>
+          <td>${formatStat('3B', p['3B'])}</td>
           <td>${formatStat('HR', p.HR)}</td>
           <td>${formatStat('RBI', p.RBI)}</td>
+          <td>${formatStat('R', p.R)}</td>
+          <td>${formatStat('BB', p.BB)}</td>
+          <td>${formatStat('HBP', p.HBP)}</td>
+          <td>${formatStat('SO', p.SO)}</td>
+
+          <td>${formatStat('AVG', p.AVG)}</td>
+          <td>${formatStat('OBP', p.OBP)}</td>
+          <td>${formatStat('SLG', p.SLG)}</td>
           <td>${formatStat('OPS', p.OPS)}</td>
+
+          <td>${formatStat('SB', p.SB)}</td>
+          <td>${formatStat('CS', p.CS)}</td>
         </tr>
       `;
     });
 
-    const headerLink = (col, label) =>
-      `<a href="?stat=${col}&order=${toggleOrder(col)}&season=${season}">${label}</a>`;
-
     res.send(`
       <html>
-        <body>
+        <body style="overflow-x:auto; font-family:Arial">
 
-        <table border="1" style="width:100%; border-collapse: collapse;">
+        <table border="1" style="border-collapse:collapse; font-size:12px;">
           <thead>
             <tr>
               <th>#</th>
               <th>Name</th>
               <th>Grade</th>
               <th>Season</th>
-              <th>${headerLink('AVG', 'AVG')}</th>
-              <th>${headerLink('HR', 'HR')}</th>
-              <th>${headerLink('RBI', 'RBI')}</th>
-              <th>${headerLink('OPS', 'OPS')}</th>
+
+              <th>${header('PA')}</th>
+              <th>${header('AB')}</th>
+              <th>${header('H')}</th>
+              <th>${header('1B')}</th>
+              <th>${header('2B')}</th>
+              <th>${header('3B')}</th>
+              <th>${header('HR')}</th>
+              <th>${header('RBI')}</th>
+              <th>${header('R')}</th>
+              <th>${header('BB')}</th>
+              <th>${header('HBP')}</th>
+              <th>${header('SO')}</th>
+
+              <th>${header('AVG')}</th>
+              <th>${header('OBP')}</th>
+              <th>${header('SLG')}</th>
+              <th>${header('OPS')}</th>
+
+              <th>${header('SB')}</th>
+              <th>${header('CS')}</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
