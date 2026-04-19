@@ -15,40 +15,35 @@ const formatStat = (key, value) => {
 
 app.get('/leaderboard/view', async (req, res) => {
   try {
-    const stat = (req.query.stat || 'avg').toLowerCase();
-    const order = req.query.order === 'asc' ? 'asc' : 'desc';
-    const season = req.query.season || '';
+const stat = (req.query.stat || 'avg').toLowerCase();
+const order = req.query.order === 'asc' ? 'asc' : 'desc';
+const season = req.query.season || '';
+const search = req.query.search || '';
+const grade = req.query.grade || '';
 
 let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
 
 if (season) {
   url += `&season_id=eq.${encodeURIComponent(season)}`;
 }
-  const search = req.query.search || '';
-    const grade = req.query.grade || '';
-
-if (search) {
-  const safe = search.replace(/[^a-zA-Z0-9]/g, '');
-
-  url += `&or=(
-    players.first_name.ilike.*${safe}*,
-    players.last_name.ilike.*${safe}*,
-    jersey_number.eq.${safe}
-  )`;
-}
 
 if (grade) {
   url += `&grade=eq.${encodeURIComponent(grade)}`;
 }
 
-    const response = await fetch(url, {
-      headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`
-      }
-    });
+if (search) {
+  const safe = search.replace(/[^a-zA-Z0-9]/g, '');
+  url += `&or=(players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*,jersey_number.eq.${safe})`;
+}
 
-    const data = await response.json();
+const response = await fetch(url, {
+  headers: {
+    apikey: SUPABASE_KEY,
+    Authorization: `Bearer ${SUPABASE_KEY}`
+  }
+});
+
+const data = await response.json();
     if (!Array.isArray(data)) return res.send(JSON.stringify(data));
 
     const toggle = (col) => (stat === col && order === 'desc') ? 'asc' : 'desc';
