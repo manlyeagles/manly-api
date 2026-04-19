@@ -96,7 +96,7 @@ app.get('/leaderboard/view', async (req, res) => {
       <html>
         <body style="font-family:Arial; margin:0; padding:10px;">
 
-    <style>
+   <style>
   body {
     margin: 0;
     font-family: Arial;
@@ -114,16 +114,18 @@ app.get('/leaderboard/view', async (req, res) => {
     min-width: 1600px;
   }
 
+  /* HEADER */
   thead th {
     position: sticky;
     top: 0;
-    z-index: 10;
+    z-index: 20; /* always on top */
     background: #f5f5f5;
     padding: 10px 14px;
     white-space: nowrap;
     border-bottom: 2px solid #ccc;
   }
 
+  /* BODY */
   tbody td {
     padding: 6px 12px;
     white-space: nowrap;
@@ -134,39 +136,39 @@ app.get('/leaderboard/view', async (req, res) => {
     border-bottom: 1px solid #eee;
   }
 
-  /* ✅ SET FIXED WIDTHS (CRITICAL) */
+  /* ✅ FIXED WIDTHS (ONLY FIRST 3 COLUMNS) */
   th:nth-child(1), td:nth-child(1) { min-width: 60px; }
-  th:nth-child(2), td:nth-child(2) { min-width: 140px; }
-  th:nth-child(3), td:nth-child(3) { min-width: 160px; }
+  th:nth-child(2), td:nth-child(2) { min-width: 160px; }
+  th:nth-child(3), td:nth-child(3) { min-width: 180px; }
 
-  /* 🔒 FREEZE ONLY JERSEY + NAMES */
-  th:nth-child(1), td:nth-child(1) {
+  /* 🔒 FREEZE ONLY FIRST 3 COLUMNS */
+  tbody td:nth-child(1),
+  thead th:nth-child(1) {
     position: sticky;
     left: 0;
-    z-index: 6;
+    z-index: 10;
     background: #fff;
   }
 
-  th:nth-child(2), td:nth-child(2) {
+  tbody td:nth-child(2),
+  thead th:nth-child(2) {
     position: sticky;
     left: 60px;
-    z-index: 6;
+    z-index: 10;
     background: #fff;
   }
 
-  th:nth-child(3), td:nth-child(3) {
-    position: sticky;
-    left: 200px;
-    z-index: 6;
-    background: #fff;
-  }
-
-  /* 🔥 Ensure header sits ABOVE frozen columns */
-  thead th:nth-child(1),
-  thead th:nth-child(2),
+  tbody td:nth-child(3),
   thead th:nth-child(3) {
-    z-index: 11;
-    background: #f5f5f5;
+    position: sticky;
+    left: 220px;
+    z-index: 10;
+    background: #fff;
+  }
+
+  /* 🔥 HEADER MUST SIT ABOVE FROZEN CELLS */
+  thead th {
+    z-index: 30;
   }
 
   a {
