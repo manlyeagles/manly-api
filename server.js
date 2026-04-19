@@ -98,14 +98,14 @@ app.get('/leaderboard/view', async (req, res) => {
       <html>
         <body style="overflow-x:auto; font-family:Arial">
 
-        <table border="1" style="border-collapse:collapse; font-size:12px;">
+        <table style="border-collapse:collapse; font-size:12px; white-space:nowrap;">
           <thead>
             <tr>
-              <th>#</th>
-              <th>First</th>
-              <th>Last</th>
-              <th>Season</th>
-              <th>Grade</th>
+              <th style="padding:6px; white-space:nowrap;">#</th>
+              <th style="padding:6px; white-space:nowrap;">First</th>
+              <th style="padding:6px; white-space:nowrap;">Last</th>
+              <th style="padding:6px; white-space:nowrap;">Season</th>
+              <th style="padding:6px; white-space:nowrap;">Grade</th>
 
               <th>${header('GP')}</th>
               <th>${header('PA')}</th>
