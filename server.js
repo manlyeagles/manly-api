@@ -19,19 +19,19 @@ app.get('/leaderboard/view', async (req, res) => {
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '2025/26';
 
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name,grade)&order=${stat}.${order}`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`
-        }
+    const url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name,grade)&order=${stat}.${order}`;
+
+    const response = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
       }
-    );
+    });
 
     const text = await response.text();
-    let data;
+    console.log('RAW RESPONSE:', text);
 
+    let data;
     try {
       data = JSON.parse(text);
     } catch {
@@ -39,14 +39,8 @@ app.get('/leaderboard/view', async (req, res) => {
     }
 
     if (!Array.isArray(data)) {
-      return res.send(JSON.stringify(data));
+      return res.send(text);
     }
-
-    const toggleOrder = (col) =>
-      (stat === col && order === 'desc') ? 'asc' : 'desc';
-
-    const header = (col, label = col) =>
-      `<a href="?stat=${encodeURIComponent(col.toLowerCase())}&order=${toggleOrder(col.toLowerCase())}&season=${season}">${label}</a>`;
 
     let rows = '';
 
@@ -81,7 +75,7 @@ app.get('/leaderboard/view', async (req, res) => {
           <td>${formatStat('OBP', p.obp)}</td>
           <td>${formatStat('SLG', p.slg)}</td>
           <td>${formatStat('OPS', p.ops)}</td>
-          <td>${formatStat('BA/RISP', p['bawrisp'])}</td>
+          <td>${formatStat('BA/RISP', p.bawrisp)}</td>
 
           <td>${p.sac || 0}</td>
           <td>${p.sf || 0}</td>
@@ -98,23 +92,22 @@ app.get('/leaderboard/view', async (req, res) => {
       `;
     });
 
-    res.send(`<table>${rows}</table>`);
+    res.send(`
+      <html>
+        <body>
+          <select onchange="location.href='?season='+this.value">
+            <option value="2025/26" ${season === '2025/26' ? 'selected' : ''}>2025/26</option>
+            <option value="2024/25" ${season === '2024/25' ? 'selected' : ''}>2024/25</option>
+          </select>
+          <table border="1">${rows}</table>
+        </body>
+      </html>
+    `);
+
   } catch (err) {
     res.send(err.toString());
   }
 });
-
-    res.send(`
-<html>
-  <body style="font-family:Arial; margin:0; padding:0;">
-
-    <!-- SEASON DROPDOWN -->
-    <div style="padding:10px;">
-      <select onchange="changeSeason(this.value)" style="padding:6px; font-size:14px;">
-       <option value="2025/26">2025/26</option>
-<option value="2024/25">2024/25</option>
-      </select>
-    </div>
 
     <style>
       body { margin:0; }
