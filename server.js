@@ -4,6 +4,20 @@ const app = express();
 const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
+const formatStat = (key, value) => {
+  if (value === null || value === undefined) return 0;
+
+  const num = Number(value);
+
+  // ERA → 2 decimal places
+  if (key === 'ERA') return num.toFixed(2);
+
+  // AVG/OBP/SLG/OPS → 3 decimal places
+  if (['AVG', 'OBP', 'SLG', 'OPS'].includes(key)) return num.toFixed(3);
+
+  return num;
+};
+
 app.get('/leaderboard/view', async (req, res) => {
   try {
     const stat = req.query.stat || 'AVG';
@@ -39,10 +53,10 @@ app.get('/leaderboard/view', async (req, res) => {
           <td>${p.players?.first_name || ''} ${p.players?.last_name || ''}</td>
           <td>${p.players?.grade || ''}</td>
           <td>${p.seasons?.season_name || ''}</td>
-          <td>${p.AVG || 0}</td>
-          <td>${p.HR || 0}</td>
-          <td>${p.RBI || 0}</td>
-          <td>${p.OPS || 0}</td>
+          <td>${formatStat('AVG', p.AVG)}</td>
+          <td>${formatStat('HR', p.HR)}</td>
+          <td>${formatStat('RBI', p.RBI)}</td>
+          <td>${formatStat('OPS', p.OPS)}</td>
         </tr>
       `;
     });
