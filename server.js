@@ -33,7 +33,7 @@ app.get('/leaderboard/view', async (req, res) => {
 
     const toggle = (col) => (stat === col && order === 'desc') ? 'asc' : 'desc';
     const link = (col, label = col.toUpperCase()) =>
-      `<a href="?stat=${encodeURIComponent(col)}&order=${toggle(col)}&season=${season}" style="color:white;text-decoration:none;">${label}</a>`;
+      `<a href="?stat=${col}&order=${toggle(col)}&season=${season}" style="color:white;text-decoration:none;">${label}</a>`;
 
     let rows = '';
 
@@ -113,37 +113,45 @@ thead th {
   white-space:nowrap;
 }
 
+/* REMOVE alternating shading */
 tbody td {
   padding:6px 10px;
   white-space:nowrap;
   background:#fff;
 }
 
-tbody tr:nth-child(even) td { background:#fafafa; }
-
-.name { text-align:left; }
-.jersey { font-weight:bold; }
-
-/* LOCKED COLUMNS */
-th:nth-child(1), td:nth-child(1) { position:sticky; left:0; z-index:50; }
-th:nth-child(2), td:nth-child(2) { position:sticky; left:70px; z-index:50; }
-th:nth-child(3), td:nth-child(3) { position:sticky; left:190px; z-index:50; }
-
-thead th:nth-child(1),
-thead th:nth-child(2),
-thead th:nth-child(3) {
-  background:#800000;
-  z-index:150;
+/* HARD FIX bleed-through */
+tbody td,
+thead th {
+  background-clip: padding-box;
 }
 
-tbody td:nth-child(1),
-tbody td:nth-child(2),
-tbody td:nth-child(3) {
+/* LOCKED COLUMNS (perfect overlap) */
+th:nth-child(1), td:nth-child(1) {
+  position:sticky;
+  left:0;
+  z-index:200;
   background:#fff;
-  z-index:40;
 }
+th:nth-child(1) { background:#800000; }
 
-/* remove bleed-through */
+th:nth-child(2), td:nth-child(2) {
+  position:sticky;
+  left:70px;
+  z-index:200;
+  background:#fff;
+}
+th:nth-child(2) { background:#800000; }
+
+th:nth-child(3), td:nth-child(3) {
+  position:sticky;
+  left:200px;
+  z-index:200;
+  background:#fff;
+}
+th:nth-child(3) { background:#800000; }
+
+/* borders */
 td, th { border-right:1px solid #ddd; }
 </style>
 </head>
