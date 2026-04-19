@@ -9,7 +9,7 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 app.get('/leaderboard/view', async (req, res) => {
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,"AB","H",players(first_name,last_name,grade)`,
+      `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,"AB","H",players(first_name,last_name,grade),seasons(season_name)`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -34,7 +34,7 @@ app.get('/leaderboard/view', async (req, res) => {
           <td>${i + 1}</td>
           <td>${p.players?.first_name || ''} ${p.players?.last_name || ''}</td>
           <td>${p.players?.grade || ''}</td>
-          <td>${p.season_id}</td>
+          <td>${p.seasons?.season_name || ''}</td>
           <td>${avg}</td>
         </tr>
       `;
