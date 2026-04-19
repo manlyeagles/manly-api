@@ -28,8 +28,13 @@ if (season) {
     const grade = req.query.grade || '';
 
 if (search) {
-  const safe = search.replace(/[^a-zA-Z]/g, '');
-  url += `&or=players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*`;
+  const safe = search.replace(/[^a-zA-Z0-9]/g, '');
+
+  url += `&or=(
+    players.first_name.ilike.*${safe}*,
+    players.last_name.ilike.*${safe}*,
+    jersey_number.eq.${safe}
+  )`;
 }
 
 if (grade) {
