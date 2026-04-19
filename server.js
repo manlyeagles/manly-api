@@ -19,6 +19,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '2025/26';
   const search = req.query.search || '';
+    const grade = req.query.grade || '';
 
 let url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
 
