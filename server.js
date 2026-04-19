@@ -47,9 +47,9 @@ app.get('/leaderboard/view', async (req, res) => {
     data.forEach((p) => {
       rows += `
         <tr>
-          <td>${p.jersey_number || ''}</td>
-          <td>${p.players?.first_name || ''}</td>
-          <td>${p.players?.last_name || ''}</td>
+          <td class="jersey">${p.jersey_number || ''}</td>
+          <td class="name">${p.players?.first_name || ''}</td>
+          <td class="name">${p.players?.last_name || ''}</td>
           <td>${p.seasons?.season_name || ''}</td>
           <td>${p.players?.grade || ''}</td>
 
@@ -96,109 +96,100 @@ app.get('/leaderboard/view', async (req, res) => {
       <html>
         <body style="font-family:Arial; margin:0; padding:10px;">
 
-   <style>
-  body {
-    margin: 0;
-    font-family: Arial;
-  }
+        <style>
+          body { margin:0; }
 
-  .table-container {
-    height: 80vh;
-    overflow: auto;
-    border: 1px solid #ddd;
-  }
+          .table-container {
+            height: 80vh;
+            overflow: auto;
+            border: 1px solid #ddd;
+          }
 
-  table {
-    border-collapse: collapse;
-    font-size: 12px;
-    min-width: 1600px;
-  }
+          table {
+            border-collapse: collapse;
+            font-size: 12px;
+            min-width: 1600px;
+          }
 
-  /* HEADER */
-  thead th {
-    position: sticky;
-    top: 0;
-    z-index: 20; /* always on top */
-    background: #f5f5f5;
-    padding: 10px 14px;
-    white-space: nowrap;
-    border-bottom: 2px solid #ccc;
-  }
+          /* HEADER */
+          thead th {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: #800000;
+            color: #fff;
+            padding: 10px 12px;
+            white-space: nowrap;
+            border-bottom: 2px solid #ccc;
+            text-align: center;
+          }
 
-  /* BODY */
-  tbody td {
-    padding: 6px 12px;
-    white-space: nowrap;
-    background: #fff;
-  }
+          thead th a {
+            color: #fff;
+            text-decoration: none;
+          }
 
-  tr {
-    border-bottom: 1px solid #eee;
-  }
+          /* BODY */
+          tbody td {
+            padding: 6px 10px;
+            white-space: nowrap;
+            text-align: center;
+            background: #fff;
+          }
 
-  /* ✅ FIXED WIDTHS (ONLY FIRST 3 COLUMNS) */
-  th:nth-child(1), td:nth-child(1) { min-width: 60px; }
-  th:nth-child(2), td:nth-child(2) { min-width: 160px; }
-  th:nth-child(3), td:nth-child(3) { min-width: 180px; }
+          /* NAME LEFT ALIGN */
+          .name {
+            text-align: left;
+          }
 
-  /* 🔒 FREEZE ONLY FIRST 3 COLUMNS */
-  tbody td:nth-child(1),
-  thead th:nth-child(1) {
-    position: sticky;
-    left: 0;
-    z-index: 10;
-    background: #fff;
-  }
+          /* JERSEY CENTER + SMALL */
+          .jersey {
+            text-align: center;
+            font-weight: bold;
+          }
 
-  tbody td:nth-child(2),
-  thead th:nth-child(2) {
-    position: sticky;
-    left: 60px;
-    z-index: 10;
-    background: #fff;
-  }
+          /* COLUMN WIDTHS (REDUCED) */
+          th:nth-child(1), td:nth-child(1) { min-width: 50px; }
+          th:nth-child(2), td:nth-child(2) { min-width: 120px; }
+          th:nth-child(3), td:nth-child(3) { min-width: 120px; }
 
-  tbody td:nth-child(3),
-  thead th:nth-child(3) {
-    position: sticky;
-    left: 220px;
-    z-index: 10;
-    background: #fff;
-  }
+          /* 🔒 FREEZE ONLY FIRST 3 COLUMNS */
+          tbody td:nth-child(1),
+          thead th:nth-child(1) {
+            position: sticky;
+            left: 0;
+            z-index: 40;
+            background: #fff;
+          }
 
-  /* 🔥 HEADER MUST SIT ABOVE FROZEN CELLS */
-  thead th {
-    z-index: 30;
-  }
+          tbody td:nth-child(2),
+          thead th:nth-child(2) {
+            position: sticky;
+            left: 50px;
+            z-index: 40;
+            background: #fff;
+          }
 
-  a {
-    text-decoration: none;
-    color: #0066cc;
-  }
+          tbody td:nth-child(3),
+          thead th:nth-child(3) {
+            position: sticky;
+            left: 170px;
+            z-index: 40;
+            background: #fff;
+          }
 
-  a:hover {
-    text-decoration: underline;
-  }
-    tbody td:nth-child(1),
-  tbody td:nth-child(2),
-  tbody td:nth-child(3) {
-    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
-  }
+          /* KEEP HEADER ABOVE EVERYTHING */
+          thead th {
+            z-index: 60;
+          }
 
-  thead th:nth-child(1),
-  thead th:nth-child(2),
-  thead th:nth-child(3) {
-    box-shadow: 2px 0 6px rgba(0,0,0,0.08);
-  }
+          /* ROW HOVER */
+          tbody tr:hover {
+            background: rgba(128,0,0,0.05);
+          }
 
-  thead th {
-    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
-  }
+        </style>
 
-  tbody tr:hover {
-    background: #fafafa;
-  }
-</style>
         <div class="table-container">
           <table>
             <thead>
@@ -246,7 +237,6 @@ app.get('/leaderboard/view', async (req, res) => {
                 <th>${header('SBpct','SB%')}</th>
               </tr>
             </thead>
-
             <tbody>
               ${rows}
             </tbody>
@@ -265,5 +255,5 @@ app.get('/leaderboard/view', async (req, res) => {
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
-  console.log(`API running on port ${PORT}`);
+  console.log(\`API running on port \${PORT}\`);
 });
