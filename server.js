@@ -30,14 +30,17 @@ app.get('/leaderboard/view', async (req, res) => {
       const avg = p.AB ? (p.H / p.AB).toFixed(3) : 0;
 
       rows += `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${p.players?.first_name || ''} ${p.players?.last_name || ''}</td>
-          <td>${p.players?.grade || ''}</td>
-          <td>${p.seasons?.season_name || ''}</td>
-          <td>${avg}</td>
-        </tr>
-      `;
+<tr>
+  <td>${i + 1}</td>
+  <td>${p.players?.first_name || ''} ${p.players?.last_name || ''}</td>
+  <td>${p.players?.grade || ''}</td>
+  <td>${p.seasons?.season_name || ''}</td>
+  <td>${avg}</td>
+  <td>${p.HR || 0}</td>
+  <td>${p.RBI || 0}</td>
+  <td>${p.OPS || 0}</td>
+</tr>
+`;
     });
 
     res.send(`
