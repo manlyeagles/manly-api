@@ -88,9 +88,11 @@ app.get('/leaderboard/view', async (req, res) => {
     });
 
   res.send(`
+res.send(`
 <html>
-  <body>
+  <body style="font-family:Arial; margin:0; padding:0;">
 
+    <!-- DROPDOWN -->
     <div style="padding:10px 0;">
       <select onchange="changeSeason(this.value)">
         <option value="1" ${season == 1 ? 'selected' : ''}>2025/26</option>
@@ -98,9 +100,15 @@ app.get('/leaderboard/view', async (req, res) => {
       </select>
     </div>
 
+    <style>
+      /* ALL YOUR CSS GOES HERE (move it here) */
+    </style>
+
     <div class="table-container">
       <table>
-        <thead>...</thead>
+        <thead>
+          <!-- YOUR HEADERS -->
+        </thead>
         <tbody>${rows}</tbody>
       </table>
     </div>
