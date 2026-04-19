@@ -104,11 +104,11 @@ app.get('/leaderboard/view', async (req, res) => {
   border: none;
 }
 
-          table {
-            border-collapse: collapse;
-            font-size: 12px;
-            min-width: 1600px;
-          }
+         table {
+  border-collapse: collapse;
+  font-size: 13px;       /* slightly bigger = fills space better */
+  min-width: 1800px;     /* gives more horizontal presence */
+}
 
           /* HEADER */
           thead th {
@@ -224,7 +224,8 @@ app.get('/leaderboard/view', async (req, res) => {
   }
         </style>
 
-        <div class="table-container">
+        <div class="table-wrapper">
+  <div class="table-container">
           <table>
             <thead>
               <tr>
