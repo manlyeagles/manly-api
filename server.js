@@ -6,13 +6,11 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 const formatStat = (key, value) => {
   if (value === null || value === undefined) return '';
-
   const num = Number(value);
 
   if (['AVG','OBP','SLG','OPS','BA/RISP','QABpct','BABIP','SBpct'].includes(key)) {
     return num.toFixed(3);
   }
-
   return num;
 };
 
@@ -94,88 +92,98 @@ app.get('/leaderboard/view', async (req, res) => {
       `;
     });
 
-   res.send(`
-  <html>
-    <body style="font-family:Arial">
+    res.send(`
+      <html>
+        <body style="font-family:Arial; margin:0; padding:10px;">
 
-    <div style="overflow-x:auto; width:100%;">
-    </table>
+        <style>
+          table {
+            border-collapse: collapse;
+            table-layout: auto;
+            font-size: 12px;
+          }
 
-</div>
+          thead th {
+            padding: 10px 14px;
+            white-space: nowrap;
+            text-align: center;
+            border-bottom: 2px solid #ccc;
+            background: #f5f5f5;
+          }
 
-    <style>
-      table {
-       <style>
-  table {
-    border-collapse: collapse;
-    table-layout: auto;
-    font-size: 12px;
-  }
+          tbody td {
+            padding: 6px 12px;
+            white-space: nowrap;
+            text-align: center;
+          }
 
-  thead th {
-    padding: 10px 14px;
-    white-space: nowrap;
-    text-align: center;
-    border-bottom: 2px solid #ccc;
-  }
+          tr {
+            border-bottom: 1px solid #eee;
+          }
 
-  tbody td {
-    padding: 6px 12px;
-    white-space: nowrap;
-    text-align: center;
-  }
+          a {
+            text-decoration: none;
+            color: #0066cc;
+          }
 
-  tr {
-    border-bottom: 1px solid #eee;
-  }
-</style>
-          <thead>
-            <tr>
-              <th style="padding:6px; white-space:nowrap;">#</th>
-              <th style="padding:6px; white-space:nowrap;">First</th>
-              <th style="padding:6px; white-space:nowrap;">Last</th>
-              <th style="padding:6px; white-space:nowrap;">Season</th>
-              <th style="padding:6px; white-space:nowrap;">Grade</th>
+          a:hover {
+            text-decoration: underline;
+          }
+        </style>
 
-              <th>${header('GP')}</th>
-              <th>${header('PA')}</th>
-              <th>${header('AB')}</th>
-              <th>${header('H')}</th>
-              <th>${header('1B')}</th>
-              <th>${header('2B')}</th>
-              <th>${header('3B')}</th>
-              <th>${header('HR')}</th>
-              <th>${header('RBI')}</th>
-              <th>${header('R')}</th>
-              <th>${header('SO')}</th>
-              <th>${header('KL','K-L')}</th>
-              <th>${header('BB')}</th>
-              <th>${header('HBP')}</th>
-              <th>${header('ROE')}</th>
-              <th>${header('FC')}</th>
-              <th>${header('CI')}</th>
+        <div style="overflow-x:auto; width:100%;">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>First</th>
+                <th>Last</th>
+                <th>Season</th>
+                <th>Grade</th>
 
-              <th>${header('AVG')}</th>
-              <th>${header('OBP')}</th>
-              <th>${header('SLG')}</th>
-              <th>${header('OPS')}</th>
-              <th>${header('BA/RISP')}</th>
+                <th>${header('GP')}</th>
+                <th>${header('PA')}</th>
+                <th>${header('AB')}</th>
+                <th>${header('H')}</th>
+                <th>${header('1B')}</th>
+                <th>${header('2B')}</th>
+                <th>${header('3B')}</th>
+                <th>${header('HR')}</th>
+                <th>${header('RBI')}</th>
+                <th>${header('R')}</th>
+                <th>${header('SO')}</th>
+                <th>${header('KL','K-L')}</th>
+                <th>${header('BB')}</th>
+                <th>${header('HBP')}</th>
+                <th>${header('ROE')}</th>
+                <th>${header('FC')}</th>
+                <th>${header('CI')}</th>
 
-              <th>${header('SAC')}</th>
-              <th>${header('SF')}</th>
-              <th>${header('LOB')}</th>
-              <th>${header('PIK')}</th>
-              <th>${header('QAB')}</th>
-              <th>${header('QABpct','QAB%')}</th>
-              <th>${header('BABIP')}</th>
+                <th>${header('AVG')}</th>
+                <th>${header('OBP')}</th>
+                <th>${header('SLG')}</th>
+                <th>${header('OPS')}</th>
+                <th>${header('BA/RISP')}</th>
 
-              <th>${header('SB')}</th>
-              <th>${header('CS')}</th>
-              <th>${header('SBpct','SB%')}</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
+                <th>${header('SAC')}</th>
+                <th>${header('SF')}</th>
+                <th>${header('LOB')}</th>
+                <th>${header('PIK')}</th>
+                <th>${header('QAB')}</th>
+                <th>${header('QABpct','QAB%')}</th>
+                <th>${header('BABIP')}</th>
+
+                <th>${header('SB')}</th>
+                <th>${header('CS')}</th>
+                <th>${header('SBpct','SB%')}</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
 
         </body>
       </html>
