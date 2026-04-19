@@ -94,25 +94,41 @@ app.get('/leaderboard/view', async (req, res) => {
       `;
     });
 
-    res.send(`
-    <html>
-    <body style="overflow-x:auto; font-family:Arial">
+   res.send(`
+  <html>
+    <body style="font-family:Arial">
+
+    <div style="overflow-x:auto; width:100%;">
+    </table>
+
+</div>
 
     <style>
       table {
-        table-layout: auto;
-        border-collapse: collapse;
-      }
+       <style>
+  table {
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 12px;
+  }
 
-      table th, table td {
-        white-space: nowrap;
-        padding: 8px 14px;
-      }
+  thead th {
+    padding: 10px 14px;
+    white-space: nowrap;
+    text-align: center;
+    border-bottom: 2px solid #ccc;
+  }
 
-      table th {
-        text-align: center;
-      }
-    </style>
+  tbody td {
+    padding: 6px 12px;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  tr {
+    border-bottom: 1px solid #eee;
+  }
+</style>
           <thead>
             <tr>
               <th style="padding:6px; white-space:nowrap;">#</th>
