@@ -49,7 +49,7 @@ app.get('/leaderboard/view', async (req, res) => {
           <td class="jersey">${p.jersey_number || ''}</td>
           <td class="name">${p.players?.first_name || ''}</td>
           <td class="name">${p.players?.last_name || ''}</td>
-          <td>${p.season_id || ''}</td>
+          <td>${p.seasons?.season_name || ''}</td>
           <td>${p.grade || ''}</td>
 
           <td>${p.gp || 0}</td>
@@ -94,75 +94,85 @@ app.get('/leaderboard/view', async (req, res) => {
     res.send(`
 <html>
   <head>
-    <style>
-      body { font-family: Arial; margin: 0; }
+   <style>
+  body { font-family: Arial; margin: 0; }
 
-      .table-container {
-        width: 100vw;
-        height: calc(100vh - 60px);
-        overflow: auto;
-      }
+  .table-container {
+    width: 100vw;
+    height: calc(100vh - 60px);
+    overflow: auto;
+  }
 
-      table {
-        border-collapse: collapse;
-        font-size: 13px;
-        min-width: 1800px;
-      }
+  table {
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 1800px;
+  }
 
-      thead th {
-        position: sticky;
-        top: 0;
-        background: #800000;
-        color: #fff;
-        padding: 10px;
-        text-align: center;
-        white-space: nowrap;
-      }
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: #800000;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    white-space: nowrap;
+  }
 
-      tbody td {
-        padding: 6px 10px;
-        text-align: center;
-        white-space: nowrap;
-      }
+  tbody td {
+    padding: 6px 10px;
+    text-align: center;
+    white-space: nowrap;
+  }
 
-      tbody tr { border-bottom: 1px solid #eee; }
+  tbody tr { border-bottom: 1px solid #eee; }
+  tbody tr:nth-child(even) { background: #fafafa; }
 
-      tbody tr:nth-child(even) {
-        background: #fafafa;
-      }
+  .name { text-align: left; }
+  .jersey { font-weight: bold; }
 
-      .name { text-align: left; }
-      .jersey { font-weight: bold; }
+  /* LOCKED COLUMNS (BODY) */
+  tbody td:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 10;
+    background: #fff;
+  }
 
-      tbody td:nth-child(1) {
-        position: sticky;
-        left: 0;
-        background: #fff;
-        z-index: 5;
-      }
+  tbody td:nth-child(2) {
+    position: sticky;
+    left: 60px;
+    z-index: 10;
+    background: #fff;
+  }
 
-      tbody td:nth-child(2) {
-        position: sticky;
-        left: 50px;
-        background: #fff;
-        z-index: 5;
-      }
+  tbody td:nth-child(3) {
+    position: sticky;
+    left: 180px;
+    z-index: 10;
+    background: #fff;
+  }
 
-      tbody td:nth-child(3) {
-        position: sticky;
-        left: 170px;
-        background: #fff;
-        z-index: 5;
-      }
+  /* LOCKED COLUMNS (HEADER) */
+  thead th:nth-child(1) {
+    position: sticky;
+    left: 0;
+    z-index: 40;
+  }
 
-      thead th:nth-child(1),
-      thead th:nth-child(2),
-      thead th:nth-child(3) {
-        position: sticky;
-        z-index: 25;
-        background: #800000;
-      }
-    </style>
+  thead th:nth-child(2) {
+    position: sticky;
+    left: 60px;
+    z-index: 40;
+  }
+
+  thead th:nth-child(3) {
+    position: sticky;
+    left: 180px;
+    z-index: 40;
+  }
+</style>
   </head>
 
   <body>
