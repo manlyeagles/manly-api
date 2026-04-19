@@ -179,6 +179,25 @@ app.get('/leaderboard/view', async (req, res) => {
   a:hover {
     text-decoration: underline;
   }
+    tbody td:nth-child(1),
+  tbody td:nth-child(2),
+  tbody td:nth-child(3) {
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+  }
+
+  thead th:nth-child(1),
+  thead th:nth-child(2),
+  thead th:nth-child(3) {
+    box-shadow: 2px 0 6px rgba(0,0,0,0.08);
+  }
+
+  thead th {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  }
+
+  tbody tr:hover {
+    background: #fafafa;
+  }
 </style>
         <div class="table-container">
           <table>
