@@ -7,7 +7,7 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 const formatStat = (key, value) => {
   if (value === null || value === undefined) return '';
   const num = Number(value);
-  if (['AVG','OBP','SLG','OPS','BA/RISP','QABpct','BABIP','SBpct'].includes(key)) {
+  if (['avg','obp','slg','ops','bawrisp','qabpct','babip','sbpct'].includes(key)) {
     return num.toFixed(3);
   }
   return num;
@@ -28,18 +28,15 @@ app.get('/leaderboard/view', async (req, res) => {
       }
     });
 
-    const text = await response.text();
-
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      return res.send(text);
-    }
+    const data = await response.json();
 
     if (!Array.isArray(data)) {
-      return res.send(text);
+      return res.send(JSON.stringify(data));
     }
+
+    const toggle = (col) => (stat === col && order === 'desc') ? 'asc' : 'desc';
+    const link = (col, label = col.toUpperCase()) =>
+      `<a href="?stat=${col}&order=${toggle(col)}&season=${season}" style="color:white;text-decoration:none;">${label}</a>`;
 
     let rows = '';
 
@@ -49,7 +46,7 @@ app.get('/leaderboard/view', async (req, res) => {
           <td class="jersey">${p.jersey_number || ''}</td>
           <td class="name">${p.players?.first_name || ''}</td>
           <td class="name">${p.players?.last_name || ''}</td>
-          <td>${p.seasons?.season_name || ''}</td>
+          <td>${p.season_id}</td>
           <td>${p.grade || ''}</td>
 
           <td>${p.gp || 0}</td>
@@ -66,174 +63,137 @@ app.get('/leaderboard/view', async (req, res) => {
           <td>${p.kl || 0}</td>
           <td>${p.bb || 0}</td>
           <td>${p.hbp || 0}</td>
-          <td>${p.roe || 0}</td>
-          <td>${p.fc || 0}</td>
-          <td>${p.ci || 0}</td>
 
-          <td>${formatStat('AVG', p.avg)}</td>
-          <td>${formatStat('OBP', p.obp)}</td>
-          <td>${formatStat('SLG', p.slg)}</td>
-          <td>${formatStat('OPS', p.ops)}</td>
-          <td>${formatStat('BA/RISP', p.bawrisp)}</td>
-
-          <td>${p.sac || 0}</td>
-          <td>${p.sf || 0}</td>
-          <td>${p.lob || 0}</td>
-          <td>${p.pik || 0}</td>
-          <td>${p.qab || 0}</td>
-          <td>${formatStat('QABpct', p.qabpct)}</td>
-          <td>${formatStat('BABIP', p.babip)}</td>
-
-          <td>${p.sb || 0}</td>
-          <td>${p.cs || 0}</td>
-          <td>${formatStat('SBpct', p.sbpct)}</td>
+          <td>${formatStat('avg', p.avg)}</td>
+          <td>${formatStat('obp', p.obp)}</td>
+          <td>${formatStat('slg', p.slg)}</td>
+          <td>${formatStat('ops', p.ops)}</td>
         </tr>
       `;
     });
 
     res.send(`
 <html>
-  <head>
-   <style>
-  body { font-family: Arial; margin: 0; }
+<head>
+<style>
+body { margin:0; font-family:Arial; }
 
-  .table-container {
-    width: 100vw;
-    height: calc(100vh - 60px);
-    overflow: auto;
-  }
+.table-container {
+  width:100vw;
+  height:calc(100vh - 60px);
+  overflow:auto;
+}
 
-  table {
-    border-collapse: collapse;
-    font-size: 13px;
-    min-width: 1800px;
-  }
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: max-content;
+  font-size:13px;
+}
 
-  thead th {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: #800000;
-    color: #fff;
-    padding: 10px;
-    text-align: center;
-    white-space: nowrap;
-  }
+thead th {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background:#800000;
+  color:#fff;
+  padding:10px;
+  white-space:nowrap;
+}
 
-  tbody td {
-    padding: 6px 10px;
-    text-align: center;
-    white-space: nowrap;
-  }
+thead th a { color:white; text-decoration:none; }
 
-  tbody tr { border-bottom: 1px solid #eee; }
-  tbody tr:nth-child(even) { background: #fafafa; }
+tbody td {
+  padding:6px 10px;
+  white-space:nowrap;
+  background:#fff;
+}
 
-  .name { text-align: left; }
-  .jersey { font-weight: bold; }
+tbody tr:nth-child(even) td {
+  background:#fafafa;
+}
 
-  /* LOCKED COLUMNS (BODY) */
-  tbody td:nth-child(1) {
-    position: sticky;
-    left: 0;
-    z-index: 10;
-    background: #fff;
-  }
+.name { text-align:left; }
+.jersey { font-weight:bold; }
 
-  tbody td:nth-child(2) {
-    position: sticky;
-    left: 60px;
-    z-index: 10;
-    background: #fff;
-  }
+/* locked columns */
+th:nth-child(1), td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 60;
+  background:#800000;
+  color:#fff;
+}
+td:nth-child(1) { background:#fff; color:#000; z-index:20; }
 
-  tbody td:nth-child(3) {
-    position: sticky;
-    left: 180px;
-    z-index: 10;
-    background: #fff;
-  }
+th:nth-child(2), td:nth-child(2) {
+  position: sticky;
+  left: 60px;
+  z-index: 60;
+  background:#800000;
+}
+td:nth-child(2) { background:#fff; z-index:20; }
 
-  /* LOCKED COLUMNS (HEADER) */
-  thead th:nth-child(1) {
-    position: sticky;
-    left: 0;
-    z-index: 40;
-  }
+th:nth-child(3), td:nth-child(3) {
+  position: sticky;
+  left: 180px;
+  z-index: 60;
+  background:#800000;
+}
+td:nth-child(3) { background:#fff; z-index:20; }
 
-  thead th:nth-child(2) {
-    position: sticky;
-    left: 60px;
-    z-index: 40;
-  }
-
-  thead th:nth-child(3) {
-    position: sticky;
-    left: 180px;
-    z-index: 40;
-  }
+thead th, tbody td {
+  border-right:1px solid #ddd;
+}
 </style>
-  </head>
+</head>
 
-  <body>
+<body>
 
-    <div style="padding:10px;">
-      <select onchange="location.href='?season='+this.value">
-        <option value="2025/26" ${season === '2025/26' ? 'selected' : ''}>2025/26</option>
-        <option value="2024/25" ${season === '2024/25' ? 'selected' : ''}>2024/25</option>
-      </select>
-    </div>
+<div style="padding:10px;">
+  <select onchange="location.href='?season='+this.value">
+    <option value="2025/26" ${season === '2025/26' ? 'selected' : ''}>2025/26</option>
+    <option value="2024/25" ${season === '2024/25' ? 'selected' : ''}>2024/25</option>
+  </select>
+</div>
 
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>First</th>
-            <th>Last</th>
-            <th>Season</th>
-            <th>Grade</th>
-            <th>GP</th>
-            <th>PA</th>
-            <th>AB</th>
-            <th>H</th>
-            <th>1B</th>
-            <th>2B</th>
-            <th>3B</th>
-            <th>HR</th>
-            <th>RBI</th>
-            <th>R</th>
-            <th>SO</th>
-            <th>KL</th>
-            <th>BB</th>
-            <th>HBP</th>
-            <th>ROE</th>
-            <th>FC</th>
-            <th>CI</th>
-            <th>AVG</th>
-            <th>OBP</th>
-            <th>SLG</th>
-            <th>OPS</th>
-            <th>BA/RISP</th>
-            <th>SAC</th>
-            <th>SF</th>
-            <th>LOB</th>
-            <th>PIK</th>
-            <th>QAB</th>
-            <th>QAB%</th>
-            <th>BABIP</th>
-            <th>SB</th>
-            <th>CS</th>
-            <th>SB%</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows}
-        </tbody>
-      </table>
-    </div>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+  <th>#</th>
+  <th>${link('first_name','First')}</th>
+  <th>${link('last_name','Last')}</th>
+  <th>${link('season_id','Season')}</th>
+  <th>${link('grade','Grade')}</th>
+  <th>${link('gp')}</th>
+  <th>${link('pa')}</th>
+  <th>${link('ab')}</th>
+  <th>${link('h')}</th>
+  <th>${link('1B')}</th>
+  <th>${link('2B')}</th>
+  <th>${link('3B')}</th>
+  <th>${link('hr')}</th>
+  <th>${link('rbi')}</th>
+  <th>${link('r')}</th>
+  <th>${link('so')}</th>
+  <th>${link('kl')}</th>
+  <th>${link('bb')}</th>
+  <th>${link('hbp')}</th>
+  <th>${link('avg')}</th>
+  <th>${link('obp')}</th>
+  <th>${link('slg')}</th>
+  <th>${link('ops')}</th>
+</tr>
+</thead>
 
-  </body>
+<tbody>
+${rows}
+</tbody>
+</table>
+</div>
+
+</body>
 </html>
     `);
 
