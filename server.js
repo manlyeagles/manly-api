@@ -18,14 +18,14 @@ app.get('/leaderboard/view', async (req, res) => {
     const stat = (req.query.stat || 'avg').toLowerCase();
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '2025/26';
-    const search = req.query.search || '';
+  const search = req.query.search || '';
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
+let url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
 
-    if (search) {
-      const q = encodeURIComponent(`%${search}%`);
-      url += `&or=(players.first_name.ilike.${q},players.last_name.ilike.${q})`;
-    }
+if (search) {
+  const safe = search.replace(/[^a-zA-Z]/g, '');
+  url += `&or=(players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*)`;
+}
 
     const response = await fetch(url, {
       headers: {
