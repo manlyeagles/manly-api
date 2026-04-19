@@ -139,26 +139,41 @@ app.get('/leaderboard/view', async (req, res) => {
       .name { text-align: left; }
       .jersey { font-weight: bold; }
 
-      /* freeze first 3 columns */
-      tbody td:nth-child(1), thead th:nth-child(1) {
-        position: sticky; left: 0; background: #fff; z-index: 10;
-      }
+     /* BODY frozen columns */
+tbody td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  background: #fff;
+}
 
-      tbody td:nth-child(2), thead th:nth-child(2) {
-        position: sticky; left: 50px; background: #fff; z-index: 10;
-      }
+tbody td:nth-child(2) {
+  position: sticky;
+  left: 50px;
+  z-index: 5;
+  background: #fff;
+}
 
-      tbody td:nth-child(3), thead th:nth-child(3) {
-        position: sticky; left: 170px; background: #fff; z-index: 10;
-      }
+tbody td:nth-child(3) {
+  position: sticky;
+  left: 170px;
+  z-index: 5;
+  background: #fff;
+}
 
-      thead th { z-index: 20; }
+/* HEADER frozen columns (KEEP MAROON) */
+thead th:nth-child(1),
+thead th:nth-child(2),
+thead th:nth-child(3) {
+  position: sticky;
+  z-index: 25;
+  background: #800000;
+}
 
-      td:nth-child(5), th:nth-child(5) { white-space: nowrap; }
-
-      thead th, tbody td {
-        border-right: 1px solid #ddd;
-      }
+/* header always on top */
+thead th {
+  z-index: 30;
+}
 
       tbody tr { border-bottom: 1px solid #eee; }
 
