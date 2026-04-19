@@ -25,7 +25,7 @@ let url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIC
 
 if (search) {
   const safe = search.replace(/[^a-zA-Z]/g, '');
-  url += `&or=(players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*)`;
+  url += `&or=players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*`;
 }
 
 if (grade) {
@@ -160,16 +160,35 @@ td, th { border-right:1px solid #ddd; }
 <body>
 
 <form method="GET" style="padding:10px;">
-  <input type="text" name="search" placeholder="Search player..." value="${search}" style="padding:6px;">
-  <input type="hidden" name="season" value="${season}">
-  <input type="hidden" name="stat" value="${stat}">
-  <input type="hidden" name="order" value="${order}">
+
+  <input 
+    type="text" 
+    name="search" 
+    placeholder="Search player..."
+    value="${search || ''}"
+    style="padding:6px;"
+  >
+
   <button type="submit">Search</button>
 
   <select name="season" onchange="this.form.submit()" style="margin-left:10px;">
     <option value="2025/26" ${season==='2025/26'?'selected':''}>2025/26</option>
     <option value="2024/25" ${season==='2024/25'?'selected':''}>2024/25</option>
   </select>
+
+  <select name="grade" onchange="this.form.submit()" style="margin-left:10px;">
+    <option value="">All Grades</option>
+    <option value="First Grade" ${grade==='First Grade'?'selected':''}>First Grade</option>
+    <option value="Second Grade" ${grade==='Second Grade'?'selected':''}>Second Grade</option>
+    <option value="Third Grade" ${grade==='Third Grade'?'selected':''}>Third Grade</option>
+    <option value="Womens" ${grade==='Womens'?'selected':''}>Womens</option>
+    <option value="Under 18" ${grade==='Under 18'?'selected':''}>Under 18</option>
+  </select>
+
+  <!-- keep sorting -->
+  <input type="hidden" name="stat" value="${stat}">
+  <input type="hidden" name="order" value="${order}">
+
 </form>
 
 <div class="table-container">
