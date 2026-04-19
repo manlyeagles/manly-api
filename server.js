@@ -96,42 +96,56 @@ app.get('/leaderboard/view', async (req, res) => {
       <html>
         <body style="font-family:Arial; margin:0; padding:10px;">
 
-        <style>
-          table {
-            border-collapse: collapse;
-            table-layout: auto;
-            font-size: 12px;
-          }
+      <style>
+  body {
+    margin: 0;
+    font-family: Arial;
+  }
 
-          thead th {
-            padding: 10px 14px;
-            white-space: nowrap;
-            text-align: center;
-            border-bottom: 2px solid #ccc;
-            background: #f5f5f5;
-          }
+  .table-container {
+    height: 80vh;              /* controls vertical height */
+    overflow: auto;            /* enables both scrollbars */
+    border: 1px solid #ddd;
+  }
 
-          tbody td {
-            padding: 6px 12px;
-            white-space: nowrap;
-            text-align: center;
-          }
+  table {
+    border-collapse: collapse;
+    table-layout: auto;
+    font-size: 12px;
+    min-width: 1400px;         /* forces horizontal scroll */
+  }
 
-          tr {
-            border-bottom: 1px solid #eee;
-          }
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: #f5f5f5;
+    padding: 10px 14px;
+    white-space: nowrap;
+    text-align: center;
+    border-bottom: 2px solid #ccc;
+  }
 
-          a {
-            text-decoration: none;
-            color: #0066cc;
-          }
+  tbody td {
+    padding: 6px 12px;
+    white-space: nowrap;
+    text-align: center;
+  }
 
-          a:hover {
-            text-decoration: underline;
-          }
-        </style>
+  tr {
+    border-bottom: 1px solid #eee;
+  }
 
-        <div style="overflow-x:auto; width:100%;">
+  a {
+    text-decoration: none;
+    color: #0066cc;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+</style>
+        <div class="table-container">
           <table>
             <thead>
               <tr>
