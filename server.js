@@ -7,10 +7,11 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 app.get('/leaderboard/view', async (req, res) => {
   try {
     const stat = req.query.stat || 'AVG';
+    const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || 1;
 
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${season}&select=player_id,season_id,"AB","H","HR","RBI","OPS","AVG",players(first_name,last_name,grade),seasons(season_name)&order=${stat}.desc`,
+      `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${season}&select=player_id,season_id,"AB","H","HR","RBI","OPS","AVG",players(first_name,last_name,grade),seasons(season_name)&order=${stat}.${order}`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -24,6 +25,10 @@ app.get('/leaderboard/view', async (req, res) => {
     if (!Array.isArray(data)) {
       return res.send(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
     }
+
+    const toggleOrder = (col) => {
+      return (stat === col && order === 'desc') ? 'asc' : 'desc';
+    };
 
     let rows = '';
 
@@ -42,16 +47,12 @@ app.get('/leaderboard/view', async (req, res) => {
       `;
     });
 
+    const headerLink = (col, label) =>
+      `<a href="?stat=${col}&order=${toggleOrder(col)}&season=${season}">${label}</a>`;
+
     res.send(`
       <html>
         <body>
-
-        <select onchange="window.location='?stat=' + this.value + '&season=${season}'">
-          <option value="AVG">AVG</option>
-          <option value="OPS">OPS</option>
-          <option value="HR">HR</option>
-          <option value="RBI">RBI</option>
-        </select>
 
         <table border="1" style="width:100%; border-collapse: collapse;">
           <thead>
@@ -60,10 +61,10 @@ app.get('/leaderboard/view', async (req, res) => {
               <th>Name</th>
               <th>Grade</th>
               <th>Season</th>
-              <th>AVG</th>
-              <th>HR</th>
-              <th>RBI</th>
-              <th>OPS</th>
+              <th>${headerLink('AVG', 'AVG')}</th>
+              <th>${headerLink('HR', 'HR')}</th>
+              <th>${headerLink('RBI', 'RBI')}</th>
+              <th>${headerLink('OPS', 'OPS')}</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
