@@ -18,8 +18,14 @@ app.get('/leaderboard/view', async (req, res) => {
     const stat = (req.query.stat || 'avg').toLowerCase();
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '2025/26';
+    const search = req.query.search || '';
 
-    const url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
+
+    if (search) {
+      const q = encodeURIComponent(`%${search}%`);
+      url += `&or=(players.first_name.ilike.${q},players.last_name.ilike.${q})`;
+    }
 
     const response = await fetch(url, {
       headers: {
@@ -33,16 +39,16 @@ app.get('/leaderboard/view', async (req, res) => {
 
     const toggle = (col) => (stat === col && order === 'desc') ? 'asc' : 'desc';
     const link = (col, label = col.toUpperCase()) =>
-      `<a href="?stat=${col}&order=${toggle(col)}&season=${season}" style="color:white;text-decoration:none;">${label}</a>`;
+      `<a href="?stat=${col}&order=${toggle(col)}&season=${season}&search=${encodeURIComponent(search)}" style="color:white;text-decoration:none;">${label}</a>`;
 
     let rows = '';
 
     data.forEach((p) => {
       rows += `
 <tr>
-<td class="jersey">${p.jersey_number || ''}</td>
-<td class="name">${p.players?.first_name || ''}</td>
-<td class="name">${p.players?.last_name || ''}</td>
+<td>${p.jersey_number || ''}</td>
+<td>${p.players?.first_name || ''}</td>
+<td>${p.players?.last_name || ''}</td>
 <td>${p.season_id}</td>
 <td>${p.grade || ''}</td>
 
@@ -92,7 +98,7 @@ body { margin:0; font-family:Arial; }
 
 .table-container {
   width:100vw;
-  height:calc(100vh - 60px);
+  height:calc(100vh - 100px);
   overflow:auto;
 }
 
@@ -102,81 +108,64 @@ table {
   font-size:13px;
 }
 
-/* HEADER */
 thead th {
   position: sticky;
   top: 0;
-  z-index: 300;
+  z-index: 100;
   background:#800000;
   color:#fff;
   padding:10px;
   white-space:nowrap;
 }
 
-/* BODY */
 tbody td {
   padding:6px 10px;
   white-space:nowrap;
+  background:#fff;
 }
 
 /* alternating rows */
-tbody tr:nth-child(odd) td { background:#ffffff; }
 tbody tr:nth-child(even) td { background:#f5f5f5; }
 
-/* column widths (critical for alignment) */
+/* column widths */
 th:nth-child(1), td:nth-child(1) { min-width:60px; }
 th:nth-child(2), td:nth-child(2) { min-width:130px; }
 th:nth-child(3), td:nth-child(3) { min-width:150px; }
 
-/* LOCKED COLUMNS */
-th:nth-child(1), td:nth-child(1) {
-  position:sticky;
-  left:0;
-  z-index:200;
-}
-th:nth-child(2), td:nth-child(2) {
-  position:sticky;
-  left:60px;
-  z-index:200;
-}
-th:nth-child(3), td:nth-child(3) {
-  position:sticky;
-  left:190px;
-  z-index:200;
-}
+/* frozen columns */
+th:nth-child(1), td:nth-child(1) { position:sticky; left:0; z-index:200; }
+th:nth-child(2), td:nth-child(2) { position:sticky; left:60px; z-index:200; }
+th:nth-child(3), td:nth-child(3) { position:sticky; left:190px; z-index:200; }
 
-/* MATCH ROW SHADING ON FROZEN COLS */
-tbody tr:nth-child(odd) td:nth-child(1),
-tbody tr:nth-child(odd) td:nth-child(2),
-tbody tr:nth-child(odd) td:nth-child(3) { background:#ffffff; }
-
+/* match shading on frozen columns */
 tbody tr:nth-child(even) td:nth-child(1),
 tbody tr:nth-child(even) td:nth-child(2),
 tbody tr:nth-child(even) td:nth-child(3) { background:#f5f5f5; }
 
-/* HEADER stays on top */
 thead th:nth-child(1),
 thead th:nth-child(2),
-thead th:nth-child(3) {
-  z-index:400;
-}
+thead th:nth-child(3) { z-index:300; }
 
-/* borders */
 td, th { border-right:1px solid #ddd; }
 
 .name { text-align:left; }
-.jersey { font-weight:bold; }
 </style>
 </head>
 
 <body>
 
-<div style="padding:10px;">
-<select onchange="location.href='?season='+this.value">
-<option value="2025/26" ${season==='2025/26'?'selected':''}>2025/26</option>
-<option value="2024/25" ${season==='2024/25'?'selected':''}>2024/25</option>
-</select>
-</div>
+<form method="GET" style="padding:10px;">
+  <input type="text" name="search" placeholder="Search player..." value="${search}" style="padding:6px;">
+  <input type="hidden" name="season" value="${season}">
+  <input type="hidden" name="stat" value="${stat}">
+  <input type="hidden" name="order" value="${order}">
+  <button type="submit">Search</button>
+
+  <select name="season" onchange="this.form.submit()" style="margin-left:10px;">
+    <option value="2025/26" ${season==='2025/26'?'selected':''}>2025/26</option>
+    <option value="2024/25" ${season==='2024/25'?'selected':''}>2024/25</option>
+  </select>
+</form>
 
 <div class="table-container">
 <table>
@@ -234,7 +223,6 @@ ${rows}
 </body>
 </html>
 `);
-
   } catch (err) {
     res.send(err.toString());
   }
