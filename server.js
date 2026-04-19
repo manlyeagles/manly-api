@@ -167,7 +167,27 @@ td, th { border-right:1px solid #ddd; }
 </head>
 
 <body>
+<div style="padding:10px; display:flex; gap:10px; flex-wrap:wrap;">
 
+  <!-- TABLE NAV -->
+  <a href="#games"><button>Total Games Played</button></a>
+  <a href="#hitting"><button>Hitting</button></a>
+  <a href="#pitching"><button>Pitching</button></a>
+  <a href="#fielding"><button>Fielding</button></a>
+
+  <!-- DIVIDER -->
+  <span style="margin:0 10px;">|</span>
+
+  <!-- TEAM FILTER -->
+  <a href="?grade="><button>All Teams</button></a>
+  <a href="?grade=First Grade"><button>First Grade</button></a>
+  <a href="?grade=Second Grade"><button>Second Grade</button></a>
+  <a href="?grade=Third Grade"><button>Third Grade</button></a>
+  <a href="?grade=Under 18"><button>Under 18</button></a>
+  <a href="?grade=Womens"><button>Womens</button></a>
+  <a href="?grade=Futures/Other"><button>Futures/Other</button></a>
+
+</div>
 <form method="GET" style="padding:10px;">
 
   <input 
