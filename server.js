@@ -29,7 +29,8 @@ app.get('/leaderboard/view', async (req, res) => {
       }
     );
 
-    const data = await response.json();
+   const data = await response.json();
+console.log(data);
 
     const toggleOrder = (col) =>
       (stat === col && order === 'desc') ? 'asc' : 'desc';
