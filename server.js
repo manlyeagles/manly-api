@@ -8,8 +8,8 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 app.get('/leaderboard/view', async (req, res) => {
   try {
-    const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,"AB","H",players(first_name,last_name,grade),seasons(season_name)`,
+   const response = await fetch(
+  `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,"AB","H","HR","RBI","OPS",players(first_name,last_name,grade),seasons(season_name)&order=OPS.desc`,
       {
         headers: {
           apikey: SUPABASE_KEY,
