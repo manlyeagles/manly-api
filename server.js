@@ -27,8 +27,6 @@ if (season) {
   const search = req.query.search || '';
     const grade = req.query.grade || '';
 
-let url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
-
 if (search) {
   const safe = search.replace(/[^a-zA-Z]/g, '');
   url += `&or=players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*`;
