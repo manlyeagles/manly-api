@@ -185,6 +185,37 @@ app.get('/leaderboard/view', async (req, res) => {
           tbody tr:hover {
             background: rgba(128,0,0,0.05);
           }
+          td:nth-child(5), th:nth-child(5) {
+  white-space: nowrap;
+}
+ table {
+    border-collapse: collapse;
+  }
+
+  thead th, tbody td {
+    border-right: 1px solid #ddd;
+  }
+
+  thead th:last-child,
+  tbody td:last-child {
+    border-right: none;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #eee;
+  }
+
+  thead th {
+    padding: 10px 12px;
+  }
+
+  tbody td {
+    padding: 6px 10px;
+  }
+
+  tbody tr:nth-child(even) {
+    background: #fafafa;
+  }
         </style>
 
         <div class="table-container">
