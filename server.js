@@ -117,7 +117,7 @@ app.get('/leaderboard/view', async (req, res) => {
   thead th {
     position: sticky;
     top: 0;
-    z-index: 5;
+    z-index: 10;
     background: #f5f5f5;
     padding: 10px 14px;
     white-space: nowrap;
@@ -136,50 +136,37 @@ app.get('/leaderboard/view', async (req, res) => {
 
   /* ✅ SET FIXED WIDTHS (CRITICAL) */
   th:nth-child(1), td:nth-child(1) { min-width: 60px; }
-  th:nth-child(2), td:nth-child(2) { min-width: 120px; }
-  th:nth-child(3), td:nth-child(3) { min-width: 140px; }
-  th:nth-child(4), td:nth-child(4) { min-width: 120px; }
-  th:nth-child(5), td:nth-child(5) { min-width: 120px; }
+  th:nth-child(2), td:nth-child(2) { min-width: 140px; }
+  th:nth-child(3), td:nth-child(3) { min-width: 160px; }
 
-  /* 🔒 FREEZE COLUMNS (correct offsets) */
+  /* 🔒 FREEZE ONLY JERSEY + NAMES */
   th:nth-child(1), td:nth-child(1) {
     position: sticky;
     left: 0;
-    z-index: 4;
+    z-index: 6;
     background: #fff;
   }
 
   th:nth-child(2), td:nth-child(2) {
     position: sticky;
     left: 60px;
-    z-index: 4;
+    z-index: 6;
     background: #fff;
   }
 
   th:nth-child(3), td:nth-child(3) {
     position: sticky;
-    left: 180px;
-    z-index: 4;
-    background: #fff;
-  }
-
-  th:nth-child(4), td:nth-child(4) {
-    position: sticky;
-    left: 320px;
-    z-index: 4;
-    background: #fff;
-  }
-
-  th:nth-child(5), td:nth-child(5) {
-    position: sticky;
-    left: 440px;
-    z-index: 4;
-    background: #fff;
-  }
-
-  /* Keep header above frozen columns */
-  thead th {
+    left: 200px;
     z-index: 6;
+    background: #fff;
+  }
+
+  /* 🔥 Ensure header sits ABOVE frozen columns */
+  thead th:nth-child(1),
+  thead th:nth-child(2),
+  thead th:nth-child(3) {
+    z-index: 11;
+    background: #f5f5f5;
   }
 
   a {
