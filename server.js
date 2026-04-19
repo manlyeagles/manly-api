@@ -103,12 +103,14 @@ const data = await response.json();
 <html>
 <head>
 <style>
-body { margin:0; font-family:Arial; }
+body {
+  margin: 0;
+  overflow: hidden;
+}
 
 .table-container {
-  width:100vw;
-  height:calc(100vh - 100px);
-  overflow:auto;
+  height: 100vh;
+  overflow: auto;
 }
 
 table {
