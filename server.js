@@ -24,7 +24,11 @@ let url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIC
 
 if (search) {
   const safe = search.replace(/[^a-zA-Z]/g, '');
-  url += `&players.first_name=ilike.*${safe}*&players.last_name=ilike.*${safe}*`;
+  url += `&or=(players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*)`;
+}
+
+if (grade) {
+  url += `&grade=eq.${encodeURIComponent(grade)}`;
 }
 
     const response = await fetch(url, {
