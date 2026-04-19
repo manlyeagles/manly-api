@@ -92,18 +92,22 @@ app.get('/leaderboard/view', async (req, res) => {
       `;
     });
 
-    res.send(`
-      <html>
-        <body>
-          <select onchange="location.href='?season='+this.value">
-            <option value="2025/26" ${season === '2025/26' ? 'selected' : ''}>2025/26</option>
-            <option value="2024/25" ${season === '2024/25' ? 'selected' : ''}>2024/25</option>
-          </select>
-          <table border="1">${rows}</table>
-        </body>
-      </html>
-    `);
+ res.send(`
+<html>
+  <body>
 
+    <select onchange="location.href='?season='+this.value">
+      <option value="2025/26" ${season === '2025/26' ? 'selected' : ''}>2025/26</option>
+      <option value="2024/25" ${season === '2024/25' ? 'selected' : ''}>2024/25</option>
+    </select>
+
+    <table border="1">
+      ${rows}
+    </table>
+
+  </body>
+</html>
+`);
   } catch (err) {
     res.send(err.toString());
   }
