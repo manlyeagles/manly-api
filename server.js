@@ -89,14 +89,20 @@ app.get('/leaderboard/view', async (req, res) => {
 
     res.send(`
       <html>
-        <body style="font-family:Arial; margin:0; padding:10px;">
+        <body style="font-family:Arial; margin:0; padding:0;">
 
         <style>
-          .table-container {
-            height: 80vh;
-            overflow: auto;
-            border: 1px solid #ddd;
-          }
+         body {
+  margin: 0;
+  padding: 0;
+}
+
+.table-container {
+  width: 100vw;          /* full screen width */
+  height: calc(100vh - 120px); /* fills screen minus header */
+  overflow: auto;
+  border: none;
+}
 
           table {
             border-collapse: collapse;
