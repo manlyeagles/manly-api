@@ -95,10 +95,24 @@ app.get('/leaderboard/view', async (req, res) => {
     });
 
     res.send(`
-      <html>
-        <body style="overflow-x:auto; font-family:Arial">
+    <html>
+    <body style="overflow-x:auto; font-family:Arial">
 
-        <table style="border-collapse:collapse; font-size:12px; white-space:nowrap;">
+    <style>
+      table {
+        table-layout: auto;
+        border-collapse: collapse;
+      }
+
+      table th, table td {
+        white-space: nowrap;
+        padding: 8px 14px;
+      }
+
+      table th {
+        text-align: center;
+      }
+    </style>
           <thead>
             <tr>
               <th style="padding:6px; white-space:nowrap;">#</th>
