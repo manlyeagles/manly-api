@@ -19,7 +19,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '2025/26';
 
-    const url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name,grade)&order=${stat}.${order}`;
+    const url = `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
 
     const response = await fetch(url, {
       headers: {
@@ -50,7 +50,7 @@ app.get('/leaderboard/view', async (req, res) => {
           <td class="name">${p.players?.first_name || ''}</td>
           <td class="name">${p.players?.last_name || ''}</td>
           <td>${p.season_id || ''}</td>
-          <td>${p.players?.grade || ''}</td>
+          <td>${p.grade || ''}</td>
 
           <td>${p.gp || 0}</td>
           <td>${p.pa || 0}</td>
