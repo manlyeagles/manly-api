@@ -17,21 +17,24 @@ app.get('/leaderboard/view', async (req, res) => {
   try {
     const stat = req.query.stat || 'AVG';
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
-    const season = req.query.season || 1;
+    const season = req.query.season || '2025/26';
 
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${season}&select=*,players(first_name,last_name,grade),seasons(season_name)&order=${stat}.${order}`,
-      {
-        headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`
-        }
-      }
-    );
+  `${SUPABASE_URL}/rest/v1/player_season_stats?season_id=eq.${encodeURIComponent(season)}&select=*,players(first_name,last_name,grade),seasons(season_name)&order=${stat}.${order}`,
+  {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
+  }
+);
 
-   const data = await response.json();
-console.log(data);
+const data = await response.json();
 
+if (!Array.isArray(data)) {
+  console.log('ERROR RESPONSE:', data);
+  return res.send('Data error');
+}
     const toggleOrder = (col) =>
       (stat === col && order === 'desc') ? 'asc' : 'desc';
 
@@ -95,8 +98,8 @@ console.log(data);
     <!-- SEASON DROPDOWN -->
     <div style="padding:10px;">
       <select onchange="changeSeason(this.value)" style="padding:6px; font-size:14px;">
-        <option value="1" ${season == 1 ? 'selected' : ''}>2025/26</option>
-        <option value="2" ${season == 2 ? 'selected' : ''}>2024/25</option>
+       <option value="2025/26">2025/26</option>
+<option value="2024/25">2024/25</option>
       </select>
     </div>
 
