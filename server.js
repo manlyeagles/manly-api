@@ -17,7 +17,13 @@ app.get('/leaderboard/view', async (req, res) => {
   try {
     const stat = (req.query.stat || 'avg').toLowerCase();
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
-    const season = req.query.season || '2025/26';
+    const season = req.query.season || '';
+
+let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
+
+if (season) {
+  url += `&season_id=eq.${encodeURIComponent(season)}`;
+}
   const search = req.query.search || '';
     const grade = req.query.grade || '';
 
@@ -172,9 +178,10 @@ td, th { border-right:1px solid #ddd; }
   <button type="submit">Search</button>
 
   <select name="season" onchange="this.form.submit()" style="margin-left:10px;">
-    <option value="2025/26" ${season==='2025/26'?'selected':''}>2025/26</option>
-    <option value="2024/25" ${season==='2024/25'?'selected':''}>2024/25</option>
-  </select>
+  <option value="">All Seasons</option>
+  <option value="2025/26" ${season==='2025/26'?'selected':''}>2025/26</option>
+  <option value="2024/25" ${season==='2024/25'?'selected':''}>2024/25</option>
+</select>
 
   <select name="grade" onchange="this.form.submit()" style="margin-left:10px;">
     <option value="">All Grades</option>
