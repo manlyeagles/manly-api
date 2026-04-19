@@ -5,13 +5,14 @@ const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 const formatStat = (key, value) => {
-  if (value === null || value === undefined) return 0;
+  if (value === null || value === undefined) return '';
+
   const num = Number(value);
 
-  if (key === 'ERA') return num.toFixed(2);
   if (['AVG','OBP','SLG','OPS','BA/RISP','QABpct','BABIP','SBpct'].includes(key)) {
     return num.toFixed(3);
   }
+
   return num;
 };
 
@@ -37,12 +38,11 @@ app.get('/leaderboard/view', async (req, res) => {
       return res.send(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
     }
 
-    const toggleOrder = (col) => {
-      return (stat === col && order === 'desc') ? 'asc' : 'desc';
-    };
+    const toggleOrder = (col) =>
+      (stat === col && order === 'desc') ? 'asc' : 'desc';
 
-    const header = (col) =>
-      `<a href="?stat=${col}&order=${toggleOrder(col)}&season=${season}">${col}</a>`;
+    const header = (col, label = col) =>
+      `<a href="?stat=${encodeURIComponent(col)}&order=${toggleOrder(col)}&season=${season}">${label}</a>`;
 
     let rows = '';
 
@@ -50,30 +50,46 @@ app.get('/leaderboard/view', async (req, res) => {
       rows += `
         <tr>
           <td>${p.jersey_number || ''}</td>
-          <td>${p.players?.first_name || ''} ${p.players?.last_name || ''}</td>
-          <td>${p.players?.grade || ''}</td>
+          <td>${p.players?.first_name || ''}</td>
+          <td>${p.players?.last_name || ''}</td>
           <td>${p.seasons?.season_name || ''}</td>
+          <td>${p.players?.grade || ''}</td>
 
-          <td>${formatStat('PA', p.PA)}</td>
-          <td>${formatStat('AB', p.AB)}</td>
-          <td>${formatStat('H', p.H)}</td>
-          <td>${formatStat('1B', p['1B'])}</td>
-          <td>${formatStat('2B', p['2B'])}</td>
-          <td>${formatStat('3B', p['3B'])}</td>
-          <td>${formatStat('HR', p.HR)}</td>
-          <td>${formatStat('RBI', p.RBI)}</td>
-          <td>${formatStat('R', p.R)}</td>
-          <td>${formatStat('BB', p.BB)}</td>
-          <td>${formatStat('HBP', p.HBP)}</td>
-          <td>${formatStat('SO', p.SO)}</td>
+          <td>${p.GP || 0}</td>
+          <td>${p.PA || 0}</td>
+          <td>${p.AB || 0}</td>
+          <td>${p.H || 0}</td>
+          <td>${p['1B'] || 0}</td>
+          <td>${p['2B'] || 0}</td>
+          <td>${p['3B'] || 0}</td>
+          <td>${p.HR || 0}</td>
+          <td>${p.RBI || 0}</td>
+          <td>${p.R || 0}</td>
+          <td>${p.SO || 0}</td>
+          <td>${p.KL || 0}</td>
+          <td>${p.BB || 0}</td>
+          <td>${p.HBP || 0}</td>
+          <td>${p.ROE || 0}</td>
+          <td>${p.FC || 0}</td>
+          <td>${p.CI || 0}</td>
 
           <td>${formatStat('AVG', p.AVG)}</td>
           <td>${formatStat('OBP', p.OBP)}</td>
           <td>${formatStat('SLG', p.SLG)}</td>
           <td>${formatStat('OPS', p.OPS)}</td>
+          <td>${formatStat('BA/RISP', p['BA/RISP'])}</td>
 
-          <td>${formatStat('SB', p.SB)}</td>
-          <td>${formatStat('CS', p.CS)}</td>
+          <td>${p.SAC || 0}</td>
+          <td>${p.SF || 0}</td>
+          <td>${p.LOB || 0}</td>
+          <td>${p.PIK || 0}</td>
+          <td>${p.QAB || 0}</td>
+          <td>${formatStat('QABpct', p.QABpct)}</td>
+          <td>${formatStat('BABIP', p.BABIP)}</td>
+
+          <td>${p.SB || 0}</td>
+          <td>${p.CS || 0}</td>
+          <td>${formatStat('SBpct', p.SBpct)}</td>
         </tr>
       `;
     });
@@ -85,11 +101,13 @@ app.get('/leaderboard/view', async (req, res) => {
         <table border="1" style="border-collapse:collapse; font-size:12px;">
           <thead>
             <tr>
-              <th>Jersey</th>
-              <th>Name</th>
-              <th>Grade</th>
+              <th>#</th>
+              <th>First</th>
+              <th>Last</th>
               <th>Season</th>
+              <th>Grade</th>
 
+              <th>${header('GP')}</th>
               <th>${header('PA')}</th>
               <th>${header('AB')}</th>
               <th>${header('H')}</th>
@@ -99,17 +117,31 @@ app.get('/leaderboard/view', async (req, res) => {
               <th>${header('HR')}</th>
               <th>${header('RBI')}</th>
               <th>${header('R')}</th>
+              <th>${header('SO')}</th>
+              <th>${header('KL','K-L')}</th>
               <th>${header('BB')}</th>
               <th>${header('HBP')}</th>
-              <th>${header('SO')}</th>
+              <th>${header('ROE')}</th>
+              <th>${header('FC')}</th>
+              <th>${header('CI')}</th>
 
               <th>${header('AVG')}</th>
               <th>${header('OBP')}</th>
               <th>${header('SLG')}</th>
               <th>${header('OPS')}</th>
+              <th>${header('BA/RISP')}</th>
+
+              <th>${header('SAC')}</th>
+              <th>${header('SF')}</th>
+              <th>${header('LOB')}</th>
+              <th>${header('PIK')}</th>
+              <th>${header('QAB')}</th>
+              <th>${header('QABpct','QAB%')}</th>
+              <th>${header('BABIP')}</th>
 
               <th>${header('SB')}</th>
               <th>${header('CS')}</th>
+              <th>${header('SBpct','SB%')}</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
