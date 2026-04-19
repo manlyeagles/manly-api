@@ -110,13 +110,11 @@ body {
 
 .table-container {
   height: 100vh;
-  overflow: auto;
+  overflow: auto; /* 👈 vertical + horizontal */
 }
 
 table {
-  border-collapse: collapse;
-  width: max-content;
-  font-size:13px;
+  min-width: 1800px; /* 👈 forces horizontal scroll */
 }
 
 thead th {
