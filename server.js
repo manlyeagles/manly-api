@@ -87,24 +87,17 @@ app.get('/leaderboard/view', async (req, res) => {
       `;
     });
 
-   res.send(`
+  res.send(`
 <html>
-  <body style="font-family:Arial; margin:0; padding:10px;">
+  <body>
 
-    <!-- 🔽 SEASON DROPDOWN -->
     <div style="padding:10px 0;">
-      <select onchange="changeSeason(this.value)" style="padding:6px; font-size:14px;">
+      <select onchange="changeSeason(this.value)">
         <option value="1" ${season == 1 ? 'selected' : ''}>2025/26</option>
         <option value="2" ${season == 2 ? 'selected' : ''}>2024/25</option>
       </select>
     </div>
 
-    <!-- 🔽 YOUR EXISTING STYLE BLOCK -->
-    <style>
-      /* KEEP ALL YOUR CURRENT CSS HERE */
-    </style>
-
-    <!-- 🔽 TABLE -->
     <div class="table-container">
       <table>
         <thead>...</thead>
@@ -112,7 +105,6 @@ app.get('/leaderboard/view', async (req, res) => {
       </table>
     </div>
 
-    <!-- 🔽 SCRIPT -->
     <script>
       function changeSeason(season) {
         const url = new URL(window.location.href);
@@ -124,13 +116,6 @@ app.get('/leaderboard/view', async (req, res) => {
   </body>
 </html>
 `);
-<script>
-  function changeSeason(season) {
-    const url = new URL(window.location.href);
-    url.searchParams.set('season', season);
-    window.location.href = url.toString();
-  }
-</script>
       <html>
         <body style="font-family:Arial; margin:0; padding:0;">
 
