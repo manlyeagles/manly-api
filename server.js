@@ -45,13 +45,16 @@ app.get('/leaderboard/view', async (req, res) => {
         <body>
           <table border="1" style="width:100%; border-collapse: collapse;">
             <thead>
-              <tr>
-                <th>#</th>
-                <th>Name</th>
-                <th>Grade</th>
-                <th>Season</th>
-                <th>AVG</th>
-              </tr>
+             <tr>
+  <th>#</th>
+  <th>Name</th>
+  <th>Grade</th>
+  <th>Season</th>
+  <th>AVG</th>
+  <th>HR</th>
+  <th>RBI</th>
+  <th>OPS</th>
+</tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
