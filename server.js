@@ -87,7 +87,20 @@ app.get('/leaderboard/view', async (req, res) => {
       `;
     });
 
-    res.send(`
+    res.send(<div style="padding:10px 0;">
+  <select onchange="changeSeason(this.value)" style="padding:6px; font-size:14px;">
+    <option value="1">2025/26</option>
+    <option value="2">2024/25</option>
+  </select>
+</div>
+
+<script>
+  function changeSeason(season) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('season', season);
+    window.location.href = url.toString();
+  }
+</script>
       <html>
         <body style="font-family:Arial; margin:0; padding:0;">
 
