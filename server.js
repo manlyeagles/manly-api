@@ -96,7 +96,7 @@ app.get('/leaderboard/view', async (req, res) => {
       <html>
         <body style="font-family:Arial; margin:0; padding:10px;">
 
-     <style>
+    <style>
   body {
     margin: 0;
     font-family: Arial;
@@ -110,26 +110,23 @@ app.get('/leaderboard/view', async (req, res) => {
 
   table {
     border-collapse: collapse;
-    table-layout: auto;
     font-size: 12px;
-    min-width: 1400px;
+    min-width: 1600px;
   }
 
   thead th {
     position: sticky;
     top: 0;
-    z-index: 3;
+    z-index: 5;
     background: #f5f5f5;
     padding: 10px 14px;
     white-space: nowrap;
-    text-align: center;
     border-bottom: 2px solid #ccc;
   }
 
   tbody td {
     padding: 6px 12px;
     white-space: nowrap;
-    text-align: center;
     background: #fff;
   }
 
@@ -137,36 +134,52 @@ app.get('/leaderboard/view', async (req, res) => {
     border-bottom: 1px solid #eee;
   }
 
-  /* 🔥 FREEZE COLUMNS */
-  th:nth-child(1),
-  td:nth-child(1) {
+  /* ✅ SET FIXED WIDTHS (CRITICAL) */
+  th:nth-child(1), td:nth-child(1) { min-width: 60px; }
+  th:nth-child(2), td:nth-child(2) { min-width: 120px; }
+  th:nth-child(3), td:nth-child(3) { min-width: 140px; }
+  th:nth-child(4), td:nth-child(4) { min-width: 120px; }
+  th:nth-child(5), td:nth-child(5) { min-width: 120px; }
+
+  /* 🔒 FREEZE COLUMNS (correct offsets) */
+  th:nth-child(1), td:nth-child(1) {
     position: sticky;
     left: 0;
+    z-index: 4;
     background: #fff;
-    z-index: 2;
   }
 
-  th:nth-child(2),
-  td:nth-child(2) {
+  th:nth-child(2), td:nth-child(2) {
     position: sticky;
     left: 60px;
-    background: #fff;
-    z-index: 2;
-  }
-
-  th:nth-child(3),
-  td:nth-child(3) {
-    position: sticky;
-    left: 160px;
-    background: #fff;
-    z-index: 2;
-  }
-
-  /* Header layering fix */
-  thead th:nth-child(1),
-  thead th:nth-child(2),
-  thead th:nth-child(3) {
     z-index: 4;
+    background: #fff;
+  }
+
+  th:nth-child(3), td:nth-child(3) {
+    position: sticky;
+    left: 180px;
+    z-index: 4;
+    background: #fff;
+  }
+
+  th:nth-child(4), td:nth-child(4) {
+    position: sticky;
+    left: 320px;
+    z-index: 4;
+    background: #fff;
+  }
+
+  th:nth-child(5), td:nth-child(5) {
+    position: sticky;
+    left: 440px;
+    z-index: 4;
+    background: #fff;
+  }
+
+  /* Keep header above frozen columns */
+  thead th {
+    z-index: 6;
   }
 
   a {
