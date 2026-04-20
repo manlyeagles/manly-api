@@ -1,5 +1,4 @@
 const express = require('express');
-
 const app = express();
 
 const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
@@ -20,11 +19,11 @@ app.get('/leaderboard/view', async (req, res) => {
         Authorization: `Bearer ${SUPABASE_KEY}`
       }
     });
-    const seasonsData = await seasonsRes.json();
+    const seasons = await seasonsRes.json();
 
     const seasonOptions = `
       <option value="">All Seasons</option>
-      ${seasonsData.map(s => `
+      ${seasons.map(s => `
         <option value="${s.season_name}" ${season === s.season_name ? 'selected' : ''}>
           ${s.season_name}
         </option>
@@ -34,13 +33,8 @@ app.get('/leaderboard/view', async (req, res) => {
     // ✅ BUILD QUERY
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
 
-    if (season) {
-      url += `&season_id=eq.${encodeURIComponent(season)}`;
-    }
-
-    if (grade) {
-      url += `&grade=eq.${encodeURIComponent(grade)}`;
-    }
+    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
 
     if (search) {
       const safe = search.replace(/[^a-zA-Z0-9]/g, '');
@@ -56,11 +50,12 @@ app.get('/leaderboard/view', async (req, res) => {
 
     const data = await response.json();
 
-    const toggle = (col) => (stat === col && order === 'desc') ? 'asc' : 'desc';
+    const toggle = col => (stat === col && order === 'desc') ? 'asc' : 'desc';
 
     const link = (col, label = col.toUpperCase()) =>
       `<a href="?stat=${col}&order=${toggle(col)}&season=${season}&grade=${grade}&search=${search}" style="color:white;text-decoration:none;">${label}</a>`;
 
+    // ✅ BUILD ROWS
     let rows = '';
 
     data.forEach(p => {
@@ -71,17 +66,31 @@ app.get('/leaderboard/view', async (req, res) => {
 <td>${p.players?.last_name || ''}</td>
 <td>${p.season_id}</td>
 <td>${p.grade || ''}</td>
+
 <td>${p.gp || 0}</td>
 <td>${p.pa || 0}</td>
 <td>${p.ab || 0}</td>
 <td>${p.h || 0}</td>
+<td>${p["1B"] || 0}</td>
+<td>${p["2B"] || 0}</td>
+<td>${p["3B"] || 0}</td>
 <td>${p.hr || 0}</td>
 <td>${p.rbi || 0}</td>
+<td>${p.r || 0}</td>
+<td>${p.so || 0}</td>
+<td>${p.bb || 0}</td>
+<td>${p.hbp || 0}</td>
+
 <td>${p.avg || ''}</td>
 <td>${p.obp || ''}</td>
 <td>${p.slg || ''}</td>
 <td>${p.ops || ''}</td>
-</tr>`;
+<td>${p.bawrisp || ''}</td>
+
+<td>${p.sb || 0}</td>
+<td>${p.cs || 0}</td>
+</tr>
+`;
     });
 
     res.send(`
@@ -105,37 +114,41 @@ html, body {
   border-bottom: 1px solid #ddd;
 }
 
+/* ONE scroll container */
 .table-container {
   flex: 1;
   overflow: auto;
 }
 
-/* table layout */
+/* table */
 table {
   border-collapse: collapse;
   width: max-content;
-  min-width: 1400px;
+  min-width: 1800px;
+  font-size: 13px;
 }
 
-/* header */
+/* sticky header */
 thead th {
   position: sticky;
   top: 0;
   background: #800000;
   color: #fff;
   padding: 8px;
-  z-index: 2;
+  z-index: 5;
 }
 
-/* cells */
 td {
   padding: 6px 10px;
   white-space: nowrap;
 }
 
-/* zebra */
 tr:nth-child(even) td {
   background: #f5f5f5;
+}
+
+h2 {
+  margin: 10px;
 }
 </style>
 </head>
@@ -145,6 +158,15 @@ tr:nth-child(even) td {
 <div class="wrapper">
 
   <div class="controls">
+
+    <!-- NAV -->
+    <div style="margin-bottom:10px; display:flex; gap:10px;">
+      <a href="#hitting"><button type="button">Hitting</button></a>
+      <a href="#pitching"><button type="button">Pitching</button></a>
+      <a href="#fielding"><button type="button">Fielding</button></a>
+    </div>
+
+    <!-- FILTERS -->
     <form method="GET">
       <input name="search" placeholder="Search..." value="${search}">
       <button>Search</button>
@@ -165,9 +187,13 @@ tr:nth-child(even) td {
       <input type="hidden" name="stat" value="${stat}">
       <input type="hidden" name="order" value="${order}">
     </form>
+
   </div>
 
   <div class="table-container">
+
+    <h2 id="hitting">Hitting</h2>
+
     <table>
       <thead>
         <tr>
@@ -176,12 +202,15 @@ tr:nth-child(even) td {
           <th>${link('last_name','Last')}</th>
           <th>${link('season_id','Season')}</th>
           <th>${link('grade','Grade')}</th>
+
           <th>${link('gp')}</th>
           <th>${link('pa')}</th>
           <th>${link('ab')}</th>
           <th>${link('h')}</th>
           <th>${link('hr')}</th>
           <th>${link('rbi')}</th>
+          <th>${link('r')}</th>
+
           <th>${link('avg')}</th>
           <th>${link('obp')}</th>
           <th>${link('slg')}</th>
@@ -192,6 +221,7 @@ tr:nth-child(even) td {
         ${rows}
       </tbody>
     </table>
+
   </div>
 
 </div>
@@ -199,7 +229,6 @@ tr:nth-child(even) td {
 </body>
 </html>
 `);
-
   } catch (err) {
     res.send(err.toString());
   }
