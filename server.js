@@ -1,58 +1,70 @@
 const express = require('express');
+const fetch = require('node-fetch');
+
 const app = express();
 
 const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
-const formatStat = (key, value) => {
-  if (value === null || value === undefined) return '';
-  const num = Number(value);
-  if (['avg','obp','slg','ops','bawrisp','qabpct','babip','sbpct'].includes(key)) {
-    return num.toFixed(3);
-  }
-  return num;
-};
-
 app.get('/leaderboard/view', async (req, res) => {
   try {
-const stat = (req.query.stat || 'avg').toLowerCase();
-const order = req.query.order === 'asc' ? 'asc' : 'desc';
-const season = req.query.season || '';
-const search = req.query.search || '';
-const grade = req.query.grade || '';
+    const stat = (req.query.stat || 'avg').toLowerCase();
+    const order = req.query.order === 'asc' ? 'asc' : 'desc';
+    const season = req.query.season || '';
+    const grade = req.query.grade || '';
+    const search = req.query.search || '';
 
-let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
+    // ✅ GET SEASONS
+    const seasonsRes = await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name,season_num&order=season_num.asc`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    });
+    const seasonsData = await seasonsRes.json();
 
-if (season) {
-  url += `&season_id=eq.${encodeURIComponent(season)}`;
-}
+    const seasonOptions = `
+      <option value="">All Seasons</option>
+      ${seasonsData.map(s => `
+        <option value="${s.season_name}" ${season === s.season_name ? 'selected' : ''}>
+          ${s.season_name}
+        </option>
+      `).join('')}
+    `;
 
-if (grade) {
-  url += `&grade=eq.${encodeURIComponent(grade)}`;
-}
+    // ✅ BUILD QUERY
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
 
-if (search) {
-  const safe = search.replace(/[^a-zA-Z0-9]/g, '');
-  url += `&or=(players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*,jersey_number.eq.${safe})`;
-}
+    if (season) {
+      url += `&season_id=eq.${encodeURIComponent(season)}`;
+    }
 
-const response = await fetch(url, {
-  headers: {
-    apikey: SUPABASE_KEY,
-    Authorization: `Bearer ${SUPABASE_KEY}`
-  }
-});
+    if (grade) {
+      url += `&grade=eq.${encodeURIComponent(grade)}`;
+    }
 
-const data = await response.json();
-    if (!Array.isArray(data)) return res.send(JSON.stringify(data));
+    if (search) {
+      const safe = search.replace(/[^a-zA-Z0-9]/g, '');
+      url += `&or=(players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*,jersey_number.eq.${safe})`;
+    }
+
+    const response = await fetch(url, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    });
+
+    const data = await response.json();
 
     const toggle = (col) => (stat === col && order === 'desc') ? 'asc' : 'desc';
+
     const link = (col, label = col.toUpperCase()) =>
-      `<a href="?stat=${col}&order=${toggle(col)}&season=${season}&search=${encodeURIComponent(search)}" style="color:white;text-decoration:none;">${label}</a>`;
+      `<a href="?stat=${col}&order=${toggle(col)}&season=${season}&grade=${grade}&search=${search}" style="color:white;text-decoration:none;">${label}</a>`;
 
     let rows = '';
 
-    data.forEach((p) => {
+    data.forEach(p => {
       rows += `
 <tr>
 <td>${p.jersey_number || ''}</td>
@@ -60,43 +72,17 @@ const data = await response.json();
 <td>${p.players?.last_name || ''}</td>
 <td>${p.season_id}</td>
 <td>${p.grade || ''}</td>
-
 <td>${p.gp || 0}</td>
 <td>${p.pa || 0}</td>
 <td>${p.ab || 0}</td>
 <td>${p.h || 0}</td>
-<td>${p["1B"] || 0}</td>
-<td>${p["2B"] || 0}</td>
-<td>${p["3B"] || 0}</td>
 <td>${p.hr || 0}</td>
 <td>${p.rbi || 0}</td>
-<td>${p.r || 0}</td>
-<td>${p.so || 0}</td>
-<td>${p.kl || 0}</td>
-<td>${p.bb || 0}</td>
-<td>${p.hbp || 0}</td>
-<td>${p.roe || 0}</td>
-<td>${p.fc || 0}</td>
-
-<td>${formatStat('avg', p.avg)}</td>
-<td>${formatStat('obp', p.obp)}</td>
-<td>${formatStat('slg', p.slg)}</td>
-<td>${formatStat('ops', p.ops)}</td>
-<td>${formatStat('bawrisp', p.bawrisp)}</td>
-
-<td>${p.sac || 0}</td>
-<td>${p.sf || 0}</td>
-<td>${p.lob || 0}</td>
-<td>${p.pik || 0}</td>
-<td>${p.qab || 0}</td>
-<td>${formatStat('qabpct', p.qabpct)}</td>
-<td>${formatStat('babip', p.babip)}</td>
-
-<td>${p.sb || 0}</td>
-<td>${p.cs || 0}</td>
-<td>${formatStat('sbpct', p.sbpct)}</td>
-</tr>
-`;
+<td>${p.avg || ''}</td>
+<td>${p.obp || ''}</td>
+<td>${p.slg || ''}</td>
+<td>${p.ops || ''}</td>
+</tr>`;
     });
 
     res.send(`
@@ -106,180 +92,118 @@ const data = await response.json();
 html, body {
   margin: 0;
   height: 100%;
-  overflow: hidden;
+  font-family: Arial;
+}
+
+.wrapper {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
 }
 
 .table-container {
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: auto;
+  flex: 1;
+  overflow: auto;
 }
 
+/* table layout */
 table {
   border-collapse: collapse;
-  width: max-content;   /* 👈 THIS is the key */
-  min-width: 1800px;    /* 👈 forces horizontal scroll */
+  width: max-content;
+  min-width: 1400px;
 }
 
+/* header */
 thead th {
   position: sticky;
   top: 0;
-  z-index: 100;
-  background:#800000;
-  color:#fff;
-  padding:10px;
-  white-space:nowrap;
+  background: #800000;
+  color: #fff;
+  padding: 8px;
+  z-index: 2;
 }
 
-tbody td {
-  padding:6px 10px;
-  white-space:nowrap;
-  background:#fff;
+/* cells */
+td {
+  padding: 6px 10px;
+  white-space: nowrap;
 }
 
-/* alternating rows */
-tbody tr:nth-child(even) td { background:#f5f5f5; }
-
-/* column widths */
-th:nth-child(1), td:nth-child(1) { min-width:60px; }
-th:nth-child(2), td:nth-child(2) { min-width:130px; }
-th:nth-child(3), td:nth-child(3) { min-width:150px; }
-
-/* frozen columns */
-th:nth-child(1), td:nth-child(1) { position:sticky; left:0; z-index:200; }
-th:nth-child(2), td:nth-child(2) { position:sticky; left:60px; z-index:200; }
-th:nth-child(3), td:nth-child(3) { position:sticky; left:190px; z-index:200; }
-
-/* match shading on frozen columns */
-tbody tr:nth-child(even) td:nth-child(1),
-tbody tr:nth-child(even) td:nth-child(2),
-tbody tr:nth-child(even) td:nth-child(3) { background:#f5f5f5; }
-
-thead th:nth-child(1),
-thead th:nth-child(2),
-thead th:nth-child(3) { z-index:300; }
-
-td, th { border-right:1px solid #ddd; }
-
-.name { text-align:left; }
+/* zebra */
+tr:nth-child(even) td {
+  background: #f5f5f5;
+}
 </style>
 </head>
 
 <body>
-<div style="padding:10px; display:flex; gap:10px; flex-wrap:wrap;">
 
-  <!-- TABLE NAV -->
-  <a href="#games"><button>Total Games Played</button></a>
-  <a href="#hitting"><button>Hitting</button></a>
-  <a href="#pitching"><button>Pitching</button></a>
-  <a href="#fielding"><button>Fielding</button></a>
+<div class="wrapper">
 
-  <!-- DIVIDER -->
-  <span style="margin:0 10px;">|</span>
+  <div class="controls">
+    <form method="GET">
+      <input name="search" placeholder="Search..." value="${search}">
+      <button>Search</button>
 
-  <!-- TEAM FILTER -->
-  <a href="?grade="><button>All Teams</button></a>
-  <a href="?grade=First Grade"><button>First Grade</button></a>
-  <a href="?grade=Second Grade"><button>Second Grade</button></a>
-  <a href="?grade=Third Grade"><button>Third Grade</button></a>
-  <a href="?grade=Under 18"><button>Under 18</button></a>
-  <a href="?grade=Womens"><button>Womens</button></a>
-  <a href="?grade=Futures/Other"><button>Futures/Other</button></a>
+      <select name="season" onchange="this.form.submit()">
+        ${seasonOptions}
+      </select>
 
-</div>
-<form method="GET" style="padding:10px;">
+      <select name="grade" onchange="this.form.submit()">
+        <option value="">All Grades</option>
+        <option value="First Grade" ${grade==='First Grade'?'selected':''}>First Grade</option>
+        <option value="Second Grade" ${grade==='Second Grade'?'selected':''}>Second Grade</option>
+        <option value="Third Grade" ${grade==='Third Grade'?'selected':''}>Third Grade</option>
+        <option value="Under 18" ${grade==='Under 18'?'selected':''}>Under 18</option>
+        <option value="Womens" ${grade==='Womens'?'selected':''}>Womens</option>
+      </select>
 
-  <input 
-    type="text" 
-    name="search" 
-    placeholder="Search player..."
-    value="${search || ''}"
-    style="padding:6px;"
-  >
+      <input type="hidden" name="stat" value="${stat}">
+      <input type="hidden" name="order" value="${order}">
+    </form>
+  </div>
 
-  <button type="submit">Search</button>
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>${link('jersey_number','#')}</th>
+          <th>${link('first_name','First')}</th>
+          <th>${link('last_name','Last')}</th>
+          <th>${link('season_id','Season')}</th>
+          <th>${link('grade','Grade')}</th>
+          <th>${link('gp')}</th>
+          <th>${link('pa')}</th>
+          <th>${link('ab')}</th>
+          <th>${link('h')}</th>
+          <th>${link('hr')}</th>
+          <th>${link('rbi')}</th>
+          <th>${link('avg')}</th>
+          <th>${link('obp')}</th>
+          <th>${link('slg')}</th>
+          <th>${link('ops')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  </div>
 
-  <select name="season" onchange="this.form.submit()" style="margin-left:10px;">
-  <option value="">All Seasons</option>
-  <option value="2025/26" ${season==='2025/26'?'selected':''}>2025/26</option>
-  <option value="2024/25" ${season==='2024/25'?'selected':''}>2024/25</option>
-</select>
-
-  <select name="grade" onchange="this.form.submit()" style="margin-left:10px;">
-    <option value="">All Grades</option>
-    <option value="First Grade" ${grade==='First Grade'?'selected':''}>First Grade</option>
-    <option value="Second Grade" ${grade==='Second Grade'?'selected':''}>Second Grade</option>
-    <option value="Third Grade" ${grade==='Third Grade'?'selected':''}>Third Grade</option>
-    <option value="Womens" ${grade==='Womens'?'selected':''}>Womens</option>
-    <option value="Under 18" ${grade==='Under 18'?'selected':''}>Under 18</option>
-  </select>
-
-  <!-- keep sorting -->
-  <input type="hidden" name="stat" value="${stat}">
-  <input type="hidden" name="order" value="${order}">
-
-</form>
-
-<div class="table-container">
-<table>
-<thead>
-<tr>
-<th>${link('jersey_number','#')}</th>
-<th>${link('first_name','First')}</th>
-<th>${link('last_name','Last')}</th>
-<th>${link('season_id','Season')}</th>
-<th>${link('grade','Grade')}</th>
-
-<th>${link('gp')}</th>
-<th>${link('pa')}</th>
-<th>${link('ab')}</th>
-<th>${link('h')}</th>
-<th>${link('1B')}</th>
-<th>${link('2B')}</th>
-<th>${link('3B')}</th>
-<th>${link('hr')}</th>
-<th>${link('rbi')}</th>
-<th>${link('r')}</th>
-<th>${link('so')}</th>
-<th>${link('kl')}</th>
-<th>${link('bb')}</th>
-<th>${link('hbp')}</th>
-<th>${link('roe')}</th>
-<th>${link('fc')}</th>
-
-<th>${link('avg')}</th>
-<th>${link('obp')}</th>
-<th>${link('slg')}</th>
-<th>${link('ops')}</th>
-<th>${link('bawrisp')}</th>
-
-<th>${link('sac')}</th>
-<th>${link('sf')}</th>
-<th>${link('lob')}</th>
-<th>${link('pik')}</th>
-<th>${link('qab')}</th>
-<th>${link('qabpct')}</th>
-<th>${link('babip')}</th>
-
-<th>${link('sb')}</th>
-<th>${link('cs')}</th>
-<th>${link('sbpct')}</th>
-</tr>
-</thead>
-
-<tbody>
-${rows}
-</tbody>
-</table>
 </div>
 
 </body>
 </html>
 `);
+
   } catch (err) {
     res.send(err.toString());
   }
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log("API running on port " + PORT));
+app.listen(3001, () => console.log("Server running"));
