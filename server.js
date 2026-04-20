@@ -62,8 +62,6 @@ players.sort((a, b) => {
       playersMap[p.player_id].seasons.push(p);
     });
 
-    const players = Object.values(playersMap);
-
     // =========================
     // ✅ FIXED GAMES TABLE
     // =========================
