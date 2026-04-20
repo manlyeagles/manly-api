@@ -103,18 +103,22 @@ const data = await response.json();
 <html>
 <head>
 <style>
-body {
+html, body {
   margin: 0;
+  height: 100%;
   overflow: hidden;
 }
 
 .table-container {
-  height: 100vh;
-  overflow: auto; /* 👈 vertical + horizontal */
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 
 table {
-  min-width: 1800px; /* 👈 forces horizontal scroll */
+  border-collapse: collapse;
+  width: max-content;   /* 👈 THIS is the key */
+  min-width: 1800px;    /* 👈 forces horizontal scroll */
 }
 
 thead th {
