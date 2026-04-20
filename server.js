@@ -10,9 +10,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const grade = req.query.grade || '';
     const search = req.query.search || '';
 
-    const format3 = v => (v ? Number(v).toFixed(3) : '');
-
-    // seasons dropdown
+    // fetch seasons
     const seasonsRes = await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name,season_num&order=season_num.asc`, {
       headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
     });
@@ -23,7 +21,7 @@ app.get('/leaderboard/view', async (req, res) => {
       ${seasons.map(s => `<option value="${s.season_name}" ${season===s.season_name?'selected':''}>${s.season_name}</option>`).join('')}
     `;
 
-    // data query
+    // fetch stats
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
@@ -59,26 +57,50 @@ app.get('/leaderboard/view', async (req, res) => {
     const players = Object.values(playersMap);
 
     // =========================
-    // ✅ GAMES TABLE (NEW)
+    // ✅ FIXED GAMES TABLE
     // =========================
     function buildGamesTable(players) {
 
-      const grades = ['First Grade','Second Grade','Third Grade','Under 18','Womens','Other'];
+      const grades = [
+        'First Grade',
+        'Second Grade',
+        'Third Grade',
+        'Under 18',
+        'Womens',
+        'Other'
+      ];
+
       let rows = '';
 
       players.forEach(player => {
 
-        const totalGames = player.seasons.reduce((sum,s)=>sum+(Number(s.gp)||0),0);
+        // totals per grade
+        const gradeTotals = {};
+        grades.forEach(g => gradeTotals[g] = 0);
 
+        player.seasons.forEach(s => {
+          if (gradeTotals[s.grade] !== undefined) {
+            gradeTotals[s.grade] += Number(s.gp) || 0;
+          } else {
+            gradeTotals['Other'] += Number(s.gp) || 0;
+          }
+        });
+
+        const totalGames = Object.values(gradeTotals).reduce((a,b)=>a+b,0);
+
+        // MAIN ROW (NOW FILLED)
         rows += `
 <tr class="main-row" onclick="toggle('${player.player_id}')">
   <td class="center">${player.jersey||''}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
   <td class="center"><b>${totalGames}</b></td>
+
+  ${grades.map(g=>`<td class="center"><b>${gradeTotals[g] || ''}</b></td>`).join('')}
 </tr>
 `;
 
+        // group by season
         const seasonsMap = {};
 
         player.seasons.forEach(s=>{
@@ -102,55 +124,7 @@ app.get('/leaderboard/view', async (req, res) => {
       return rows;
     }
 
-    // =========================
-    // ✅ HITTING TABLE
-    // =========================
-    function buildHittingTable(players){
-
-      const cols = ['gp','pa','ab','h','1b','2b','3b','hr','rbi','r','bb','so','sb','cs','avg','obp','slg','ops'];
-      const avgCols = ['avg','obp','slg','ops'];
-
-      let rows='';
-
-      players.forEach(player=>{
-
-        const totals={};
-
-        cols.forEach(c=>{
-          if(avgCols.includes(c)){
-            const vals=player.seasons.map(s=>Number(s[c])||0);
-            totals[c]=vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length):0;
-          } else {
-            totals[c]=player.seasons.reduce((sum,s)=>sum+(Number(s[c])||0),0);
-          }
-        });
-
-        rows+=`
-<tr class="main-row" onclick="toggle('${player.player_id}')">
-<td class="center">${player.jersey||''}</td>
-<td class="left">${player.first_name}</td>
-<td class="left">${player.last_name}</td>
-${cols.map(c=>`<td class="center"><b>${avgCols.includes(c)?format3(totals[c]):totals[c]}</b></td>`).join('')}
-</tr>
-`;
-
-        player.seasons.forEach(s=>{
-          rows+=`
-<tr class="detail-${player.player_id}" style="display:none;">
-<td></td>
-<td colspan="2">${s.season_id} - ${s.grade}</td>
-${cols.map(c=>`<td class="center">${avgCols.includes(c)?format3(s[c]):(s[c]||0)}</td>`).join('')}
-</tr>
-`;
-        });
-
-      });
-
-      return rows;
-    }
-
     const gamesTable = buildGamesTable(players);
-    const hittingTable = buildHittingTable(players);
 
     // =========================
     // HTML
@@ -225,7 +199,7 @@ ${seasonOptions}
 
 <div class="table-container">
 
-<h2 id="games">Total Games</h2>
+<h2>Total Games</h2>
 <table>
 <thead>
 <tr>
@@ -242,23 +216,6 @@ ${seasonOptions}
 </tr>
 </thead>
 <tbody>${gamesTable}</tbody>
-</table>
-
-<h2 id="hitting">Hitting</h2>
-<table>
-<thead>
-<tr>
-<th>#</th>
-<th class="left">First</th>
-<th class="left">Last</th>
-<th>GP</th><th>PA</th><th>AB</th><th>H</th>
-<th>1B</th><th>2B</th><th>3B</th><th>HR</th>
-<th>RBI</th><th>R</th><th>BB</th><th>SO</th>
-<th>SB</th><th>CS</th>
-<th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
-</tr>
-</thead>
-<tbody>${hittingTable}</tbody>
 </table>
 
 </div>
