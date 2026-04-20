@@ -10,6 +10,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const season = req.query.season || '';
     const grade = req.query.grade || '';
     const search = req.query.search || '';
+    const tab = req.query.tab || 'games';
 
     // =========================
     // FETCH DATA
@@ -34,7 +35,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const data = await resData.json();
 
     // =========================
-    // FETCH SEASONS (separate)
+    // FETCH SEASONS
     // =========================
     const seasonsRes = await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name&order=season_name.desc`, {
       headers: {
@@ -55,7 +56,7 @@ app.get('/leaderboard/view', async (req, res) => {
     `;
 
     // =========================
-    // GROUP DATA (correct)
+    // GROUP DATA
     // =========================
     const playersMap = {};
 
@@ -84,18 +85,17 @@ app.get('/leaderboard/view', async (req, res) => {
     let players = Object.values(playersMap);
 
     // =========================
-    // SORT BY TOTAL GAMES
+    // SORT BY TOTAL
     // =========================
     players.sort((a,b)=>{
       const sum = obj => Object.values(obj.seasons)
         .flatMap(g=>Object.values(g))
         .reduce((x,y)=>x+y,0);
-
       return sum(b) - sum(a);
     });
 
     // =========================
-    // BUILD TABLE
+    // TABLE BUILDER (GAMES)
     // =========================
     function buildGamesTable(players){
 
@@ -153,32 +153,42 @@ ${grades.map(g=>`<td class="center">${player.seasons[season][g]||''}</td>`).join
     const gamesTable = buildGamesTable(players);
 
     // =========================
-    // OUTPUT HTML
+    // HTML
     // =========================
     res.send(`
 <html>
 <head>
 <style>
-body { font-family: Arial; margin:0; }
+body { margin:0; font-family:Arial; }
 
 .header { text-align:center; padding:10px; }
 
 .controls { padding:10px; border-bottom:1px solid #ccc; }
 
-.button-bar { margin-bottom:6px; display:flex; gap:6px; flex-wrap:wrap; }
+.button-bar { margin-bottom:8px; display:flex; gap:6px; flex-wrap:wrap; }
 
-.wrapper { height: calc(100vh - 140px); overflow:auto; }
+/* SINGLE SCROLL AREA */
+.table-container {
+  height: calc(100vh - 180px);
+  overflow: auto;
+}
 
-table { border-collapse: collapse; width:max-content; min-width:1400px; }
+table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 1600px;
+}
 
-th, td { padding:4px 6px; white-space:nowrap; }
+th, td {
+  padding:4px 6px;
+  white-space: nowrap;
+}
 
 thead th {
-  position:sticky;
-  top:0;
-  background:#800000;
-  color:white;
-  text-align:center;
+  position: sticky;
+  top: 0;
+  background: #800000;
+  color: white;
 }
 
 .left { text-align:left; }
@@ -208,14 +218,23 @@ function toggle(id){
 
 <div class="controls">
 
+<!-- TABS -->
 <div class="button-bar">
-<button onclick="location.href='?grade='">All</button>
-<button onclick="location.href='?grade=First Grade'">First</button>
-<button onclick="location.href='?grade=Second Grade'">Second</button>
-<button onclick="location.href='?grade=Third Grade'">Third</button>
-<button onclick="location.href='?grade=Under 18'">U18</button>
-<button onclick="location.href='?grade=Womens'">Womens</button>
-<button onclick="location.href='?grade=Other'">Other</button>
+<button onclick="location.href='?tab=games'">All Games Played</button>
+<button onclick="location.href='?tab=hitting'">Hitting</button>
+<button onclick="location.href='?tab=pitching'">Pitching</button>
+<button onclick="location.href='?tab=fielding'">Fielding</button>
+</div>
+
+<!-- GRADE -->
+<div class="button-bar">
+<button onclick="location.href='?grade=&tab=${tab}'">All</button>
+<button onclick="location.href='?grade=First Grade&tab=${tab}'">First</button>
+<button onclick="location.href='?grade=Second Grade&tab=${tab}'">Second</button>
+<button onclick="location.href='?grade=Third Grade&tab=${tab}'">Third</button>
+<button onclick="location.href='?grade=Under 18&tab=${tab}'">U18</button>
+<button onclick="location.href='?grade=Womens&tab=${tab}'">Womens</button>
+<button onclick="location.href='?grade=Other&tab=${tab}'">Other</button>
 </div>
 
 <form method="GET">
@@ -227,14 +246,15 @@ ${seasonOptions}
 </select>
 
 <input type="hidden" name="grade" value="${grade}">
+<input type="hidden" name="tab" value="${tab}">
 </form>
 
 </div>
 
-<div class="wrapper">
+<div class="table-container">
 
-<h2>Total Games</h2>
-
+${tab === 'games' ? `
+<h2>All Games Played</h2>
 <table>
 <thead>
 <tr>
@@ -253,11 +273,11 @@ ${seasonOptions}
 <th>Last Year</th>
 </tr>
 </thead>
-
 <tbody>
 ${gamesTable}
 </tbody>
 </table>
+` : `<h2 style="padding:20px;">Coming Next</h2>`}
 
 </div>
 
