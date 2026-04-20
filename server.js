@@ -269,7 +269,7 @@ function toggle(id){
     <select name="season" onchange="this.form.submit()">
       <option value="">All Seasons</option>
       ${(await (await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name&order=season_name.desc`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}\` }
+        headers: { apikey: SUPABASE_KEY, Authorization:  `Bearer ${SUPABASE_KEY}\` }
       })).json()).map(s => `
         <option value="${s.season_name}" ${season===s.season_name?'selected':''}>
           ${s.season_name}
