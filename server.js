@@ -158,23 +158,56 @@ ${grades.map(g=>`<td class="center">${player.seasons[season][g] || ''}</td>`).jo
     // =========================
     // OUTPUT
     // =========================
-    res.send(`
+  res.send(`
 <html>
 <head>
 <style>
 body { font-family: Arial; margin:0; }
 
-.table-container { height:90vh; overflow:auto; }
+/* HEADER */
+.page-header {
+  text-align:center;
+  padding:10px;
+}
 
-table { border-collapse: collapse; width:max-content; }
+.page-header h1 { margin:0; color:#800000; }
+.page-header h2, .page-header h3 { margin:0; }
 
-th, td { padding:4px 6px; white-space:nowrap; }
+/* CONTROLS */
+.controls {
+  padding:10px;
+  border-bottom:1px solid #ccc;
+}
+
+.button-bar {
+  margin-bottom:8px;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+}
+
+/* TABLE SCROLL FIX */
+.table-wrapper {
+  height: calc(100vh - 160px);
+  overflow: auto;
+}
+
+table {
+  border-collapse: collapse;
+  width: max-content;
+  min-width: 1400px;
+}
+
+th, td {
+  padding:4px 6px;
+  white-space:nowrap;
+}
 
 thead th {
-  position:sticky;
-  top:0;
-  background:#800000;
-  color:#fff;
+  position: sticky;
+  top: 0;
+  background: #800000;
+  color: white;
   text-align:center;
 }
 
@@ -193,21 +226,65 @@ tr:nth-child(even) td { background:#f5f5f5; }
 <script>
 function toggle(id){
   document.querySelectorAll('.detail-'+id)
-  .forEach(r => r.style.display =
-    r.style.display==='none' ? 'table-row' : 'none');
+    .forEach(r => r.style.display =
+      r.style.display==='none' ? 'table-row' : 'none');
 }
 </script>
 </head>
 
 <body>
 
-<h2 style="text-align:center;">MANLY EAGLES BASEBALL</h2>
-<h3 style="text-align:center;">HISTORICAL STATISTICS</h3>
-<h4 style="text-align:center;">1950 - CURRENT DAY</h4>
+<div class="page-header">
+  <h1>MANLY EAGLES BASEBALL</h1>
+  <h2>HISTORICAL STATISTICS</h2>
+  <h3>1950 - CURRENT DAY</h3>
+</div>
 
-<div class="table-container">
+<div class="controls">
 
-<h2>Total Games</h2>
+  <!-- STAT BUTTONS -->
+  <div class="button-bar">
+    <button onclick="location.href='#games'">Total Games</button>
+    <button onclick="location.href='#hitting'">Hitting</button>
+    <button onclick="location.href='#pitching'">Pitching</button>
+    <button onclick="location.href='#fielding'">Fielding</button>
+  </div>
+
+  <!-- GRADE BUTTONS -->
+  <div class="button-bar">
+    <button onclick="location.href='?grade='">All</button>
+    <button onclick="location.href='?grade=First Grade'">First</button>
+    <button onclick="location.href='?grade=Second Grade'">Second</button>
+    <button onclick="location.href='?grade=Third Grade'">Third</button>
+    <button onclick="location.href='?grade=Under 18'">U18</button>
+    <button onclick="location.href='?grade=Womens'">Womens</button>
+    <button onclick="location.href='?grade=Other'">Other</button>
+  </div>
+
+  <!-- SEARCH + SEASON -->
+  <form method="GET">
+    <input name="search" placeholder="Search player..." value="${search || ''}">
+    <button type="submit">Search</button>
+
+    <select name="season" onchange="this.form.submit()">
+      <option value="">All Seasons</option>
+      ${(await (await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name&order=season_name.desc`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: \`Bearer ${SUPABASE_KEY}\` }
+      })).json()).map(s => `
+        <option value="${s.season_name}" ${season===s.season_name?'selected':''}>
+          ${s.season_name}
+        </option>
+      `).join('')}
+    </select>
+
+    <input type="hidden" name="grade" value="${grade || ''}">
+  </form>
+
+</div>
+
+<div class="table-wrapper">
+
+<h2 id="games">Total Games</h2>
 
 <table>
 <thead>
@@ -216,14 +293,12 @@ function toggle(id){
 <th class="left">First</th>
 <th class="left">Last</th>
 <th>Total</th>
-
 <th>First</th>
 <th>Second</th>
 <th>Third</th>
 <th>U18</th>
 <th>Womens</th>
 <th>Other</th>
-
 <th>Seasons</th>
 <th>First Year</th>
 <th>Last Year</th>
@@ -233,7 +308,6 @@ function toggle(id){
 <tbody>
 ${gamesTable}
 </tbody>
-
 </table>
 
 </div>
@@ -242,9 +316,11 @@ ${gamesTable}
 </html>
 `);
 
+
   } catch (err) {
     res.send(err.toString());
   }
 });
 
 app.listen(3001, () => console.log("Server running"));
+
