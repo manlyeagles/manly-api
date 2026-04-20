@@ -61,68 +61,85 @@ app.get('/leaderboard/view', async (req, res) => {
     // =========================
     function buildGamesTable(players) {
 
-      const grades = [
-        'First Grade',
-        'Second Grade',
-        'Third Grade',
-        'Under 18',
-        'Womens',
-        'Other'
-      ];
+  const grades = [
+    'First Grade',
+    'Second Grade',
+    'Third Grade',
+    'Under 18',
+    'Womens',
+    'Other'
+  ];
 
-      let rows = '';
+  let rows = '';
 
-      players.forEach(player => {
+  players.forEach(player => {
 
-        // totals per grade
-        const gradeTotals = {};
-        grades.forEach(g => gradeTotals[g] = 0);
+    // grade totals
+    const gradeTotals = {};
+    grades.forEach(g => gradeTotals[g] = 0);
 
-        player.seasons.forEach(s => {
-          if (gradeTotals[s.grade] !== undefined) {
-            gradeTotals[s.grade] += Number(s.gp) || 0;
-          } else {
-            gradeTotals['Other'] += Number(s.gp) || 0;
-          }
-        });
+    const seasonSet = new Set();
 
-        const totalGames = Object.values(gradeTotals).reduce((a,b)=>a+b,0);
+    player.seasons.forEach(s => {
+      seasonSet.add(s.season_id);
 
-        // MAIN ROW (NOW FILLED)
-        rows += `
+      if (gradeTotals[s.grade] !== undefined) {
+        gradeTotals[s.grade] += Number(s.gp) || 0;
+      } else {
+        gradeTotals['Other'] += Number(s.gp) || 0;
+      }
+    });
+
+    const totalGames = Object.values(gradeTotals).reduce((a,b)=>a+b,0);
+
+    // NEW CALCULATIONS
+    const seasonsArray = Array.from(seasonSet).sort();
+
+    const seasonsPlayed = seasonsArray.length;
+    const firstYear = seasonsArray[0] || '';
+    const lastYear = seasonsArray[seasonsArray.length - 1] || '';
+
+    // MAIN ROW
+    rows += `
 <tr class="main-row" onclick="toggle('${player.player_id}')">
   <td class="center">${player.jersey||''}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
+
   <td class="center"><b>${totalGames}</b></td>
 
   ${grades.map(g=>`<td class="center"><b>${gradeTotals[g] || ''}</b></td>`).join('')}
+
+  <td class="center"><b>${seasonsPlayed}</b></td>
+  <td class="center"><b>${firstYear}</b></td>
+  <td class="center"><b>${lastYear}</b></td>
 </tr>
 `;
 
-        // group by season
-        const seasonsMap = {};
+    // season rows
+    const seasonsMap = {};
 
-        player.seasons.forEach(s=>{
-          if(!seasonsMap[s.season_id]) seasonsMap[s.season_id]={};
-          seasonsMap[s.season_id][s.grade]=(seasonsMap[s.season_id][s.grade]||0)+(Number(s.gp)||0);
-        });
+    player.seasons.forEach(s=>{
+      if(!seasonsMap[s.season_id]) seasonsMap[s.season_id]={};
+      seasonsMap[s.season_id][s.grade]=(seasonsMap[s.season_id][s.grade]||0)+(Number(s.gp)||0);
+    });
 
-        Object.keys(seasonsMap).sort().reverse().forEach(season=>{
-          rows += `
+    Object.keys(seasonsMap).sort().reverse().forEach(season=>{
+      rows += `
 <tr class="detail-${player.player_id}" style="display:none;">
   <td></td>
   <td colspan="2">${season}</td>
   <td></td>
   ${grades.map(g=>`<td class="center">${seasonsMap[season][g]||''}</td>`).join('')}
+  <td></td><td></td><td></td>
 </tr>
 `;
-        });
+    });
 
-      });
+  });
 
-      return rows;
-    }
+  return rows;
+}
 
     const gamesTable = buildGamesTable(players);
 
@@ -213,6 +230,9 @@ ${seasonOptions}
 <th>U18</th>
 <th>Womens</th>
 <th>Other</th>
+<th>Seasons</th>
+<th>First Year</th>
+<th>Last Year</th>
 </tr>
 </thead>
 <tbody>${gamesTable}</tbody>
