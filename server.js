@@ -39,7 +39,15 @@ app.get('/leaderboard/view', async (req, res) => {
     const data = await resData.json();
 
     // group players
-    const playersMap = {};
+  const players = Object.values(playersMap);
+
+players.sort((a, b) => {
+  const totalA = a.seasons.reduce((sum, s) => sum + (Number(s.gp) || 0), 0);
+  const totalB = b.seasons.reduce((sum, s) => sum + (Number(s.gp) || 0), 0);
+  return totalB - totalA;
+});
+
+// next code...
 
     data.forEach(p => {
       if (!playersMap[p.player_id]) {
