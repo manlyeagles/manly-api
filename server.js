@@ -6,13 +6,13 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 app.get('/leaderboard/view', async (req, res) => {
   try {
-    const stat = (req.query.stat || 'avg').toLowerCase();
+    const stat = (req.query.stat || 'gp').toLowerCase();
     const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '';
     const grade = req.query.grade || '';
     const search = req.query.search || '';
 
-    // ✅ GET SEASONS
+    // seasons
     const seasonsRes = await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name,season_num&order=season_num.asc`, {
       headers: {
         apikey: SUPABASE_KEY,
@@ -30,7 +30,7 @@ app.get('/leaderboard/view', async (req, res) => {
       `).join('')}
     `;
 
-    // ✅ BUILD QUERY
+    // query
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
@@ -55,7 +55,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const link = (col, label = col.toUpperCase()) =>
       `<a href="?stat=${col}&order=${toggle(col)}&season=${season}&grade=${grade}&search=${search}" style="color:white;text-decoration:none;">${label}</a>`;
 
-    // ✅ BUILD ROWS
+    // rows
     let rows = '';
 
     data.forEach(p => {
@@ -71,24 +71,14 @@ app.get('/leaderboard/view', async (req, res) => {
 <td>${p.pa || 0}</td>
 <td>${p.ab || 0}</td>
 <td>${p.h || 0}</td>
-<td>${p["1B"] || 0}</td>
-<td>${p["2B"] || 0}</td>
-<td>${p["3B"] || 0}</td>
 <td>${p.hr || 0}</td>
 <td>${p.rbi || 0}</td>
 <td>${p.r || 0}</td>
-<td>${p.so || 0}</td>
-<td>${p.bb || 0}</td>
-<td>${p.hbp || 0}</td>
 
 <td>${p.avg || ''}</td>
 <td>${p.obp || ''}</td>
 <td>${p.slg || ''}</td>
 <td>${p.ops || ''}</td>
-<td>${p.bawrisp || ''}</td>
-
-<td>${p.sb || 0}</td>
-<td>${p.cs || 0}</td>
 </tr>
 `;
     });
@@ -114,7 +104,20 @@ html, body {
   border-bottom: 1px solid #ddd;
 }
 
-/* ONE scroll container */
+/* buttons */
+.button-bar {
+  margin-bottom:10px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.button-bar a button {
+  padding:6px 10px;
+  cursor:pointer;
+}
+
+/* scroll container */
 .table-container {
   flex: 1;
   overflow: auto;
@@ -124,18 +127,16 @@ html, body {
 table {
   border-collapse: collapse;
   width: max-content;
-  min-width: 1800px;
+  min-width: 1400px;
   font-size: 13px;
 }
 
-/* sticky header */
 thead th {
   position: sticky;
   top: 0;
   background: #800000;
-  color: #fff;
+  color: white;
   padding: 8px;
-  z-index: 5;
 }
 
 td {
@@ -146,10 +147,6 @@ td {
 tr:nth-child(even) td {
   background: #f5f5f5;
 }
-
-h2 {
-  margin: 10px;
-}
 </style>
 </head>
 
@@ -159,11 +156,21 @@ h2 {
 
   <div class="controls">
 
-    <!-- NAV -->
-    <div style="margin-bottom:10px; display:flex; gap:10px;">
-      <a href="#hitting"><button type="button">Hitting</button></a>
-      <a href="#pitching"><button type="button">Pitching</button></a>
-      <a href="#fielding"><button type="button">Fielding</button></a>
+    <!-- SECTION NAV -->
+    <div class="button-bar">
+      <a href="#games"><button>Total Games</button></a>
+      <a href="#hitting"><button>Hitting</button></a>
+    </div>
+
+    <!-- GRADE BUTTONS -->
+    <div class="button-bar">
+      <a href="?grade=&season=${season}&search=${search}"><button>All</button></a>
+      <a href="?grade=First Grade&season=${season}&search=${search}"><button>First Grade</button></a>
+      <a href="?grade=Second Grade&season=${season}&search=${search}"><button>Second Grade</button></a>
+      <a href="?grade=Third Grade&season=${season}&search=${search}"><button>Third Grade</button></a>
+      <a href="?grade=Under 18&season=${season}&search=${search}"><button>Under 18</button></a>
+      <a href="?grade=Womens&season=${season}&search=${search}"><button>Womens</button></a>
+      <a href="?grade=Other&season=${season}&search=${search}"><button>Other</button></a>
     </div>
 
     <!-- FILTERS -->
@@ -175,15 +182,7 @@ h2 {
         ${seasonOptions}
       </select>
 
-      <select name="grade" onchange="this.form.submit()">
-        <option value="">All Grades</option>
-        <option value="First Grade" ${grade==='First Grade'?'selected':''}>First Grade</option>
-        <option value="Second Grade" ${grade==='Second Grade'?'selected':''}>Second Grade</option>
-        <option value="Third Grade" ${grade==='Third Grade'?'selected':''}>Third Grade</option>
-        <option value="Under 18" ${grade==='Under 18'?'selected':''}>Under 18</option>
-        <option value="Womens" ${grade==='Womens'?'selected':''}>Womens</option>
-      </select>
-
+      <input type="hidden" name="grade" value="${grade}">
       <input type="hidden" name="stat" value="${stat}">
       <input type="hidden" name="order" value="${order}">
     </form>
@@ -192,16 +191,43 @@ h2 {
 
   <div class="table-container">
 
-    <h2 id="hitting">Hitting</h2>
-
+    <!-- TOTAL GAMES -->
+    <h2 id="games">Total Games Played</h2>
     <table>
       <thead>
         <tr>
-          <th>${link('jersey_number','#')}</th>
-          <th>${link('first_name','First')}</th>
-          <th>${link('last_name','Last')}</th>
-          <th>${link('season_id','Season')}</th>
-          <th>${link('grade','Grade')}</th>
+          <th>#</th>
+          <th>First</th>
+          <th>Last</th>
+          <th>Season</th>
+          <th>Grade</th>
+          <th>${link('gp','GP')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${data.map(p => `
+          <tr>
+            <td>${p.jersey_number || ''}</td>
+            <td>${p.players?.first_name || ''}</td>
+            <td>${p.players?.last_name || ''}</td>
+            <td>${p.season_id}</td>
+            <td>${p.grade}</td>
+            <td>${p.gp || 0}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <!-- HITTING -->
+    <h2 id="hitting">Hitting</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>First</th>
+          <th>Last</th>
+          <th>Season</th>
+          <th>Grade</th>
 
           <th>${link('gp')}</th>
           <th>${link('pa')}</th>
