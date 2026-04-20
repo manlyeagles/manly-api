@@ -86,49 +86,35 @@ data.forEach(p => {
 
   let rows = '';
 
-  players.forEach(player => {
+players.forEach(player => {
 
-    // grade totals
-    const gradeTotals = {};
-    grades.forEach(g => gradeTotals[g] = 0);
+  // grade totals
+  const gradeTotals = {};
+  grades.forEach(g => gradeTotals[g] = 0);
 
-    const seasonSet = new Set();
+  // track seasons
+  const seasonSet = new Set();
 
-   // prevent duplicates by grouping season + grade
-const uniqueMap = {};
+  player.seasons.forEach(s => {
+    seasonSet.add(s.season_id);
 
-player.seasons.forEach(s => {
-  const key = s.season_id + '_' + s.grade;
+    if (gradeTotals[s.grade] !== undefined) {
+      gradeTotals[s.grade] += Number(s.gp) || 0;
+    } else {
+      gradeTotals['Other'] += Number(s.gp) || 0;
+    }
+  });
 
-  if (!uniqueMap[key]) {
-    uniqueMap[key] = 0;
-  }
+  const totalGames = Object.values(gradeTotals).reduce((a,b)=>a+b,0);
 
-  uniqueMap[key] += Number(s.gp) || 0;
-});
+  // seasons info
+  const seasonsArray = Array.from(seasonSet).sort();
+  const seasonsPlayed = seasonsArray.length;
+  const firstYear = seasonsArray[0] || '';
+  const lastYear = seasonsArray[seasonsArray.length - 1] || '';
 
-// now assign totals correctly
-Object.entries(uniqueMap).forEach(([key, value]) => {
-  const grade = key.split('_')[1];
-
-  if (gradeTotals[grade] !== undefined) {
-    gradeTotals[grade] += value;
-  } else {
-    gradeTotals['Other'] += value;
-  }
-});
-
-    const totalGames = Object.values(gradeTotals).reduce((a,b)=>a+b,0);
-
-    // NEW CALCULATIONS
-    const seasonsArray = Array.from(seasonSet).sort();
-
-    const seasonsPlayed = seasonsArray.length;
-    const firstYear = seasonsArray[0] || '';
-    const lastYear = seasonsArray[seasonsArray.length - 1] || '';
-
-    // MAIN ROW
-    rows += `
+  // MAIN ROW
+  rows += `
 <tr class="main-row" onclick="toggle('${player.player_id}')">
   <td class="center">${player.jersey||''}</td>
   <td class="left">${player.first_name}</td>
@@ -144,16 +130,16 @@ Object.entries(uniqueMap).forEach(([key, value]) => {
 </tr>
 `;
 
-    // season rows
-    const seasonsMap = {};
+  // group seasons
+  const seasonsMap = {};
 
-    player.seasons.forEach(s=>{
-      if(!seasonsMap[s.season_id]) seasonsMap[s.season_id]={};
-      seasonsMap[s.season_id][s.grade]=(seasonsMap[s.season_id][s.grade]||0)+(Number(s.gp)||0);
-    });
+  player.seasons.forEach(s=>{
+    if(!seasonsMap[s.season_id]) seasonsMap[s.season_id]={};
+    seasonsMap[s.season_id][s.grade]=(seasonsMap[s.season_id][s.grade]||0)+(Number(s.gp)||0);
+  });
 
-    Object.keys(seasonsMap).sort().reverse().forEach(season=>{
-      rows += `
+  Object.keys(seasonsMap).sort().reverse().forEach(season=>{
+    rows += `
 <tr class="detail-${player.player_id}" style="display:none;">
   <td></td>
   <td colspan="2">${season}</td>
@@ -162,9 +148,9 @@ Object.entries(uniqueMap).forEach(([key, value]) => {
   <td></td><td></td><td></td>
 </tr>
 `;
-    });
-
   });
+
+});
 
   return rows;
 }
