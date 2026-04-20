@@ -94,15 +94,29 @@ data.forEach(p => {
 
     const seasonSet = new Set();
 
-    player.seasons.forEach(s => {
-      seasonSet.add(s.season_id);
+   // prevent duplicates by grouping season + grade
+const uniqueMap = {};
 
-      if (gradeTotals[s.grade] !== undefined) {
-        gradeTotals[s.grade] += Number(s.gp) || 0;
-      } else {
-        gradeTotals['Other'] += Number(s.gp) || 0;
-      }
-    });
+player.seasons.forEach(s => {
+  const key = s.season_id + '_' + s.grade;
+
+  if (!uniqueMap[key]) {
+    uniqueMap[key] = 0;
+  }
+
+  uniqueMap[key] += Number(s.gp) || 0;
+});
+
+// now assign totals correctly
+Object.entries(uniqueMap).forEach(([key, value]) => {
+  const grade = key.split('_')[1];
+
+  if (gradeTotals[grade] !== undefined) {
+    gradeTotals[grade] += value;
+  } else {
+    gradeTotals['Other'] += value;
+  }
+});
 
     const totalGames = Object.values(gradeTotals).reduce((a,b)=>a+b,0);
 
