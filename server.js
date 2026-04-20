@@ -10,7 +10,10 @@ app.get('/leaderboard/view', async (req, res) => {
     const grade = req.query.grade || '';
     const search = req.query.search || '';
 
-    // ✅ FETCH SEASONS
+    // helper for decimals
+    const format3 = v => (v !== null && v !== undefined && v !== '' ? Number(v).toFixed(3) : '');
+
+    // fetch seasons
     const seasonsRes = await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name,season_num&order=season_num.asc`, {
       headers: {
         apikey: SUPABASE_KEY,
@@ -28,7 +31,7 @@ app.get('/leaderboard/view', async (req, res) => {
       `).join('')}
     `;
 
-    // ✅ BUILD QUERY
+    // fetch stats
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
@@ -48,7 +51,7 @@ app.get('/leaderboard/view', async (req, res) => {
 
     const data = await response.json();
 
-    // ✅ GROUP PLAYERS
+    // group players
     const playersMap = {};
 
     data.forEach(p => {
@@ -69,23 +72,33 @@ app.get('/leaderboard/view', async (req, res) => {
 
     const players = Object.values(playersMap);
 
-    // ✅ GENERIC TABLE BUILDER
-    function buildTable(columns) {
+    // table builder
+    function buildTable(columns, isAverage = []) {
       let rows = '';
 
       players.forEach(player => {
 
         const totals = {};
+
         columns.forEach(c => {
-          totals[c] = player.seasons.reduce((sum, s) => sum + (Number(s[c]) || 0), 0);
+          if (isAverage.includes(c)) {
+            const vals = player.seasons.map(s => Number(s[c]) || 0);
+            totals[c] = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
+          } else {
+            totals[c] = player.seasons.reduce((sum, s) => sum + (Number(s[c]) || 0), 0);
+          }
         });
 
         rows += `
 <tr class="main-row" onclick="toggle('${player.player_id}')">
-  <td>${player.jersey || ''}</td>
-  <td>${player.first_name}</td>
-  <td>${player.last_name}</td>
-  ${columns.map(c => `<td><b>${totals[c] || ''}</b></td>`).join('')}
+  <td class="center">${player.jersey || ''}</td>
+  <td class="left">${player.first_name}</td>
+  <td class="left">${player.last_name}</td>
+  ${columns.map(c => `
+    <td class="center"><b>${
+      isAverage.includes(c) ? format3(totals[c]) : totals[c]
+    }</b></td>
+  `).join('')}
 </tr>
 `;
 
@@ -94,7 +107,11 @@ app.get('/leaderboard/view', async (req, res) => {
 <tr class="detail-${player.player_id}" style="display:none;">
   <td></td>
   <td colspan="2">${s.season_id} - ${s.grade}</td>
-  ${columns.map(c => `<td>${s[c] || ''}</td>`).join('')}
+  ${columns.map(c => `
+    <td class="center">${
+      isAverage.includes(c) ? format3(s[c]) : (s[c] || 0)
+    }</td>
+  `).join('')}
 </tr>
 `;
         });
@@ -104,12 +121,13 @@ app.get('/leaderboard/view', async (req, res) => {
       return rows;
     }
 
-    // ✅ TABLE DATA
+    // tables
     const gamesTable = buildTable(['gp']);
 
-    const hittingTable = buildTable([
-      'gp','pa','ab','h','hr','rbi','r','avg','obp','slg','ops'
-    ]);
+    const hittingTable = buildTable(
+      ['gp','pa','ab','h','1b','2b','3b','hr','rbi','r','bb','so','sb','cs','avg','obp','slg','ops'],
+      ['avg','obp','slg','ops']
+    );
 
     res.send(`
 <html>
@@ -132,10 +150,34 @@ html, body {
   border-bottom:1px solid #ddd;
 }
 
+/* HEADER */
+.page-header {
+  text-align:center;
+  margin-bottom:10px;
+}
+
+.page-header h1 {
+  margin:0;
+  font-size:26px;
+  color:#800000;
+}
+
+.page-header h2 {
+  margin:0;
+  font-size:16px;
+}
+
+.page-header h3 {
+  margin:0;
+  font-size:13px;
+  color:#666;
+}
+
+/* buttons */
 .button-bar {
   margin-bottom:10px;
   display:flex;
-  gap:8px;
+  gap:6px;
   flex-wrap:wrap;
 }
 
@@ -144,10 +186,11 @@ html, body {
   overflow:auto;
 }
 
+/* TABLE */
 table {
   border-collapse:collapse;
   width:max-content;
-  min-width:1400px;
+  font-size:12px;
 }
 
 thead th {
@@ -155,12 +198,25 @@ thead th {
   top:0;
   background:#800000;
   color:#fff;
-  padding:8px;
+  padding:6px;
+  text-align:center;
+}
+
+th.left {
+  text-align:left;
 }
 
 td {
-  padding:6px 10px;
+  padding:4px 6px;
   white-space:nowrap;
+}
+
+td.center {
+  text-align:center;
+}
+
+td.left {
+  text-align:left;
 }
 
 tr:nth-child(even) td {
@@ -181,77 +237,77 @@ function toggle(id) {
       r.style.display === 'none' ? 'table-row' : 'none');
 }
 </script>
-
 </head>
 
 <body>
 
 <div class="wrapper">
 
-  <div class="controls">
+<div class="controls">
 
-    <!-- NAV -->
-    <div class="button-bar">
-      <a href="#games"><button>Total Games</button></a>
-      <a href="#hitting"><button>Hitting</button></a>
-    </div>
+<div class="page-header">
+  <h1>MANLY EAGLES BASEBALL</h1>
+  <h2>HISTORICAL STATISTICS</h2>
+  <h3>1950 - CURRENT DAY</h3>
+</div>
 
-    <!-- GRADE BUTTONS -->
-    <div class="button-bar">
-      <a href="?"><button>All</button></a>
-      <a href="?grade=First Grade"><button>First Grade</button></a>
-      <a href="?grade=Second Grade"><button>Second Grade</button></a>
-      <a href="?grade=Third Grade"><button>Third Grade</button></a>
-      <a href="?grade=Under 18"><button>Under 18</button></a>
-      <a href="?grade=Womens"><button>Womens</button></a>
-      <a href="?grade=Other"><button>Other</button></a>
-    </div>
+<div class="button-bar">
+  <a href="#games"><button>Total Games</button></a>
+  <a href="#hitting"><button>Hitting</button></a>
+</div>
 
-    <!-- FILTERS -->
-    <form method="GET">
-      <input name="search" placeholder="Search..." value="${search}">
-      <button>Search</button>
+<form method="GET">
+  <input name="search" placeholder="Search..." value="${search}">
+  <button>Search</button>
 
-      <select name="season" onchange="this.form.submit()">
-        ${seasonOptions}
-      </select>
+  <select name="season" onchange="this.form.submit()">
+    ${seasonOptions}
+  </select>
 
-      <input type="hidden" name="grade" value="${grade}">
-    </form>
+  <input type="hidden" name="grade" value="${grade}">
+</form>
 
-  </div>
+</div>
 
-  <div class="table-container">
+<div class="table-container">
 
-    <h2 id="games">Total Games</h2>
-    <table>
-      <thead>
-        <tr><th>#</th><th>First</th><th>Last</th><th>GP</th></tr>
-      </thead>
-      <tbody>${gamesTable}</tbody>
-    </table>
+<h2 id="games">Total Games</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th class="left">First</th>
+<th class="left">Last</th>
+<th>GP</th>
+</tr>
+</thead>
+<tbody>${gamesTable}</tbody>
+</table>
 
-    <h2 id="hitting">Hitting</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th><th>First</th><th>Last</th>
-          <th>GP</th><th>PA</th><th>AB</th><th>H</th>
-          <th>HR</th><th>RBI</th><th>R</th>
-          <th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
-        </tr>
-      </thead>
-      <tbody>${hittingTable}</tbody>
-    </table>
+<h2 id="hitting">Hitting</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th class="left">First</th>
+<th class="left">Last</th>
+<th>GP</th><th>PA</th><th>AB</th><th>H</th>
+<th>1B</th><th>2B</th><th>3B</th><th>HR</th>
+<th>RBI</th><th>R</th><th>BB</th><th>SO</th>
+<th>SB</th><th>CS</th>
+<th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
+</tr>
+</thead>
+<tbody>${hittingTable}</tbody>
+</table>
 
-  </div>
+</div>
 
 </div>
 
 </body>
 </html>
 `);
-
   } catch (err) {
     res.send(err.toString());
   }
