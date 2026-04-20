@@ -6,13 +6,11 @@ const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 app.get('/leaderboard/view', async (req, res) => {
   try {
-    const stat = (req.query.stat || 'gp').toLowerCase();
-    const order = req.query.order === 'asc' ? 'asc' : 'desc';
     const season = req.query.season || '';
     const grade = req.query.grade || '';
     const search = req.query.search || '';
 
-    // seasons
+    // ✅ FETCH SEASONS
     const seasonsRes = await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name,season_num&order=season_num.asc`, {
       headers: {
         apikey: SUPABASE_KEY,
@@ -30,8 +28,8 @@ app.get('/leaderboard/view', async (req, res) => {
       `).join('')}
     `;
 
-    // query
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)&order=${stat}.${order}`;
+    // ✅ BUILD QUERY
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -50,61 +48,90 @@ app.get('/leaderboard/view', async (req, res) => {
 
     const data = await response.json();
 
-    const toggle = col => (stat === col && order === 'desc') ? 'asc' : 'desc';
-
-    const link = (col, label = col.toUpperCase()) =>
-      `<a href="?stat=${col}&order=${toggle(col)}&season=${season}&grade=${grade}&search=${search}" style="color:white;text-decoration:none;">${label}</a>`;
-
-    // rows
-    let rows = '';
+    // ✅ GROUP PLAYERS
+    const playersMap = {};
 
     data.forEach(p => {
-      rows += `
-<tr>
-<td>${p.jersey_number || ''}</td>
-<td>${p.players?.first_name || ''}</td>
-<td>${p.players?.last_name || ''}</td>
-<td>${p.season_id}</td>
-<td>${p.grade || ''}</td>
+      const id = p.player_id;
 
-<td>${p.gp || 0}</td>
-<td>${p.pa || 0}</td>
-<td>${p.ab || 0}</td>
-<td>${p.h || 0}</td>
-<td>${p.hr || 0}</td>
-<td>${p.rbi || 0}</td>
-<td>${p.r || 0}</td>
+      if (!playersMap[id]) {
+        playersMap[id] = {
+          player_id: id,
+          first_name: p.players?.first_name,
+          last_name: p.players?.last_name,
+          jersey: p.jersey_number,
+          seasons: []
+        };
+      }
 
-<td>${p.avg || ''}</td>
-<td>${p.obp || ''}</td>
-<td>${p.slg || ''}</td>
-<td>${p.ops || ''}</td>
+      playersMap[id].seasons.push(p);
+    });
+
+    const players = Object.values(playersMap);
+
+    // ✅ GENERIC TABLE BUILDER
+    function buildTable(columns) {
+      let rows = '';
+
+      players.forEach(player => {
+
+        const totals = {};
+        columns.forEach(c => {
+          totals[c] = player.seasons.reduce((sum, s) => sum + (Number(s[c]) || 0), 0);
+        });
+
+        rows += `
+<tr class="main-row" onclick="toggle('${player.player_id}')">
+  <td>${player.jersey || ''}</td>
+  <td>${player.first_name}</td>
+  <td>${player.last_name}</td>
+  ${columns.map(c => `<td><b>${totals[c] || ''}</b></td>`).join('')}
 </tr>
 `;
-    });
+
+        player.seasons.forEach(s => {
+          rows += `
+<tr class="detail-${player.player_id}" style="display:none;">
+  <td></td>
+  <td colspan="2">${s.season_id} - ${s.grade}</td>
+  ${columns.map(c => `<td>${s[c] || ''}</td>`).join('')}
+</tr>
+`;
+        });
+
+      });
+
+      return rows;
+    }
+
+    // ✅ TABLE DATA
+    const gamesTable = buildTable(['gp']);
+
+    const hittingTable = buildTable([
+      'gp','pa','ab','h','hr','rbi','r','avg','obp','slg','ops'
+    ]);
 
     res.send(`
 <html>
 <head>
 <style>
 html, body {
-  margin: 0;
-  height: 100%;
-  font-family: Arial;
+  margin:0;
+  height:100%;
+  font-family:Arial;
 }
 
 .wrapper {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 
 .controls {
-  padding: 10px;
-  border-bottom: 1px solid #ddd;
+  padding:10px;
+  border-bottom:1px solid #ddd;
 }
 
-/* buttons */
 .button-bar {
   margin-bottom:10px;
   display:flex;
@@ -112,42 +139,49 @@ html, body {
   flex-wrap:wrap;
 }
 
-.button-bar a button {
-  padding:6px 10px;
-  cursor:pointer;
-}
-
-/* scroll container */
 .table-container {
-  flex: 1;
-  overflow: auto;
+  flex:1;
+  overflow:auto;
 }
 
-/* table */
 table {
-  border-collapse: collapse;
-  width: max-content;
-  min-width: 1400px;
-  font-size: 13px;
+  border-collapse:collapse;
+  width:max-content;
+  min-width:1400px;
 }
 
 thead th {
-  position: sticky;
-  top: 0;
-  background: #800000;
-  color: white;
-  padding: 8px;
+  position:sticky;
+  top:0;
+  background:#800000;
+  color:#fff;
+  padding:8px;
 }
 
 td {
-  padding: 6px 10px;
-  white-space: nowrap;
+  padding:6px 10px;
+  white-space:nowrap;
 }
 
 tr:nth-child(even) td {
-  background: #f5f5f5;
+  background:#f5f5f5;
+}
+
+.main-row {
+  background:#eef;
+  cursor:pointer;
+  font-weight:bold;
 }
 </style>
+
+<script>
+function toggle(id) {
+  document.querySelectorAll('.detail-' + id)
+    .forEach(r => r.style.display =
+      r.style.display === 'none' ? 'table-row' : 'none');
+}
+</script>
+
 </head>
 
 <body>
@@ -156,7 +190,7 @@ tr:nth-child(even) td {
 
   <div class="controls">
 
-    <!-- SECTION NAV -->
+    <!-- NAV -->
     <div class="button-bar">
       <a href="#games"><button>Total Games</button></a>
       <a href="#hitting"><button>Hitting</button></a>
@@ -164,13 +198,13 @@ tr:nth-child(even) td {
 
     <!-- GRADE BUTTONS -->
     <div class="button-bar">
-      <a href="?grade=&season=${season}&search=${search}"><button>All</button></a>
-      <a href="?grade=First Grade&season=${season}&search=${search}"><button>First Grade</button></a>
-      <a href="?grade=Second Grade&season=${season}&search=${search}"><button>Second Grade</button></a>
-      <a href="?grade=Third Grade&season=${season}&search=${search}"><button>Third Grade</button></a>
-      <a href="?grade=Under 18&season=${season}&search=${search}"><button>Under 18</button></a>
-      <a href="?grade=Womens&season=${season}&search=${search}"><button>Womens</button></a>
-      <a href="?grade=Other&season=${season}&search=${search}"><button>Other</button></a>
+      <a href="?"><button>All</button></a>
+      <a href="?grade=First Grade"><button>First Grade</button></a>
+      <a href="?grade=Second Grade"><button>Second Grade</button></a>
+      <a href="?grade=Third Grade"><button>Third Grade</button></a>
+      <a href="?grade=Under 18"><button>Under 18</button></a>
+      <a href="?grade=Womens"><button>Womens</button></a>
+      <a href="?grade=Other"><button>Other</button></a>
     </div>
 
     <!-- FILTERS -->
@@ -183,69 +217,31 @@ tr:nth-child(even) td {
       </select>
 
       <input type="hidden" name="grade" value="${grade}">
-      <input type="hidden" name="stat" value="${stat}">
-      <input type="hidden" name="order" value="${order}">
     </form>
 
   </div>
 
   <div class="table-container">
 
-    <!-- TOTAL GAMES -->
-    <h2 id="games">Total Games Played</h2>
+    <h2 id="games">Total Games</h2>
     <table>
       <thead>
-        <tr>
-          <th>#</th>
-          <th>First</th>
-          <th>Last</th>
-          <th>Season</th>
-          <th>Grade</th>
-          <th>${link('gp','GP')}</th>
-        </tr>
+        <tr><th>#</th><th>First</th><th>Last</th><th>GP</th></tr>
       </thead>
-      <tbody>
-        ${data.map(p => `
-          <tr>
-            <td>${p.jersey_number || ''}</td>
-            <td>${p.players?.first_name || ''}</td>
-            <td>${p.players?.last_name || ''}</td>
-            <td>${p.season_id}</td>
-            <td>${p.grade}</td>
-            <td>${p.gp || 0}</td>
-          </tr>
-        `).join('')}
-      </tbody>
+      <tbody>${gamesTable}</tbody>
     </table>
 
-    <!-- HITTING -->
     <h2 id="hitting">Hitting</h2>
     <table>
       <thead>
         <tr>
-          <th>#</th>
-          <th>First</th>
-          <th>Last</th>
-          <th>Season</th>
-          <th>Grade</th>
-
-          <th>${link('gp')}</th>
-          <th>${link('pa')}</th>
-          <th>${link('ab')}</th>
-          <th>${link('h')}</th>
-          <th>${link('hr')}</th>
-          <th>${link('rbi')}</th>
-          <th>${link('r')}</th>
-
-          <th>${link('avg')}</th>
-          <th>${link('obp')}</th>
-          <th>${link('slg')}</th>
-          <th>${link('ops')}</th>
+          <th>#</th><th>First</th><th>Last</th>
+          <th>GP</th><th>PA</th><th>AB</th><th>H</th>
+          <th>HR</th><th>RBI</th><th>R</th>
+          <th>AVG</th><th>OBP</th><th>SLG</th><th>OPS</th>
         </tr>
       </thead>
-      <tbody>
-        ${rows}
-      </tbody>
+      <tbody>${hittingTable}</tbody>
     </table>
 
   </div>
@@ -255,6 +251,7 @@ tr:nth-child(even) td {
 </body>
 </html>
 `);
+
   } catch (err) {
     res.send(err.toString());
   }
