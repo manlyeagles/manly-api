@@ -182,8 +182,12 @@ thead th {
   z-index: 20;
 }
 
-tbody tr:nth-child(even) {
-  background: #fff;
+tbody tr:nth-child(even) td {
+  background: #f5f5f5;
+}
+tbody td
+  background: #800000;
+Color: #ffffff
 }
 
 .left { text-align: left; }
