@@ -203,8 +203,8 @@ table {
 }
 
 th, td {
-  padding: 3px 6px;
-  font-size: 12px;
+  padding: 2px 4px;
+  font-size: 10px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -231,10 +231,10 @@ tbody tr:nth-child(even) {
 /* ===== FREEZE COLUMNS (FIXED PROPERLY) ===== */
 
 /* widths */
-th:nth-child(1), td:nth-child(1) { width: 50px; }
-th:nth-child(2), td:nth-child(2) { width: 120px; }
-th:nth-child(3), td:nth-child(3) { width: 120px; }
-th:nth-child(n+4), td:nth-child(n+4) { width: 70px; text-align: center; }
+th:nth-child(1), td:nth-child(1) { width: 40px; }
+th:nth-child(2), td:nth-child(2) { width: 900px; }
+th:nth-child(3), td:nth-child(3) { width: 900px; }
+th:nth-child(n+4), td:nth-child(n+4) { width: 50px; text-align: center; }
 
 /* sticky */
 th:nth-child(1), td:nth-child(1),
@@ -246,8 +246,8 @@ th:nth-child(3), td:nth-child(3) {
 }
 
 th:nth-child(1), td:nth-child(1) { left: 0; }
-th:nth-child(2), td:nth-child(2) { left: 50px; }
-th:nth-child(3), td:nth-child(3) { left: 170px; }
+th:nth-child(2), td:nth-child(2) { left: 40px; }
+th:nth-child(3), td:nth-child(3) { left: 130px; }
 
 thead th:nth-child(1),
 thead th:nth-child(2),
@@ -328,9 +328,9 @@ function toggle(id){
     <th>U18</th>
     <th>W</th>
     <th>Oth</th>
-    <th>Seas</th>
-    <th>First Yr</th>
-    <th>Last Yr</th>
+    <th>#S</th>
+    <th>First</th>
+    <th>Last</th>
   </tr>
 </thead>
 
