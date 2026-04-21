@@ -162,6 +162,7 @@ res.send(`
 <head>
 
 <style>
+/* PAGE LOCK */
 html, body {
   margin: 0;
   height: 100%;
@@ -169,41 +170,28 @@ html, body {
   font-family: Arial;
 }
 
-/* HEADER */
+/* HEADER + CONTROLS */
 .header {
-  text-align: center;
   padding: 10px;
+  text-align: center;
 }
 
-/* CONTROLS */
 .controls {
   padding: 10px;
   border-bottom: 1px solid #ccc;
 }
 
-.button-bar {
-  margin-bottom: 6px;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-/* LAYOUT */
+/* MAIN LAYOUT */
 .main {
-  height: calc(100vh - 180px);
+  height: calc(100vh - 170px);
   display: flex;
   flex-direction: column;
 }
 
-/* VERTICAL SCROLL */
-.table-vertical {
+/* SCROLL AREA */
+.table-wrapper {
   flex: 1;
-  overflow-y: auto;
-}
-
-/* HORIZONTAL SCROLL (ALWAYS VISIBLE) */
-.table-horizontal {
-  overflow-x: scroll;
+  overflow: auto; /* ✅ ONE SCROLL ONLY */
 }
 
 /* TABLE */
@@ -213,60 +201,45 @@ table {
   min-width: 1800px;
 }
 
+/* CELLS */
 th, td {
-  padding: 4px 6px;
+  padding: 4px 8px;
   white-space: nowrap;
 }
 
+/* HEADER FIX */
 thead th {
   position: sticky;
   top: 0;
   background: #800000;
   color: white;
-  z-index: 6;
+  z-index: 10;
 }
 
-.left { text-align: left; }
-.center { text-align: center; }
-
+/* ROWS */
 tr:nth-child(even) td {
   background: #f5f5f5;
 }
 
-.main-row {
-  background: #eef;
-  font-weight: bold;
-  cursor: pointer;
-}
-
-/* FREEZE COLUMNS */
-th:nth-child(1), td:nth-child(1) { width:60px; }
-th:nth-child(2), td:nth-child(2) { width:140px; }
-th:nth-child(3), td:nth-child(3) { width:140px; }
-
-th:nth-child(1), td:nth-child(1) {
-  position: sticky;
-  left: 0;
-  background: #fff;
-  z-index: 5;
-}
-
-th:nth-child(2), td:nth-child(2) {
-  position: sticky;
-  left: 60px;
-  background: #fff;
-  z-index: 5;
-}
-
+/* FREEZE COLUMNS (FIXED PROPERLY) */
+th:nth-child(1), td:nth-child(1),
+th:nth-child(2), td:nth-child(2),
 th:nth-child(3), td:nth-child(3) {
   position: sticky;
-  left: 200px;
-  background: #fff;
+  background: white;
   z-index: 5;
 }
 
-td:nth-child(3), th:nth-child(3) {
-  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+/* EXACT LEFT POSITIONS (NO OVERLAP) */
+th:nth-child(1), td:nth-child(1) { left: 0; }
+th:nth-child(2), td:nth-child(2) { left: 80px; }
+th:nth-child(3), td:nth-child(3) { left: 240px; }
+
+/* HEADER OVERLAY FIX */
+thead th:nth-child(1),
+thead th:nth-child(2),
+thead th:nth-child(3) {
+  z-index: 15;
 }
 </style>
 
@@ -326,12 +299,21 @@ function toggle(id){
 
 <div class="main">
 
-  <div class="table-vertical">
+  <div class="table-wrapper">
 
-    <div class="table-horizontal">
+    <table>
+      <thead>
+        ...
+      </thead>
 
-      <table>
-        <thead>
+      <tbody>
+        ${gamesTable}
+      </tbody>
+    </table>
+
+  </div>
+
+</div>
           <tr>
             <th>#</th>
             <th class="left">First Name</th>
