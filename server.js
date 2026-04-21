@@ -302,41 +302,30 @@ function toggle(id){
   <div class="table-wrapper">
 
     <table>
+
       <thead>
-        ...
+        <tr>
+          <th>#</th>
+          <th class="left">First Name</th>
+          <th class="left">Last Name</th>
+          <th>Total</th>
+          <th>1st Grade</th>
+          <th>2nd Grade</th>
+          <th>3rd Grade</th>
+          <th>U18</th>
+          <th>Womens</th>
+          <th>Other</th>
+          <th>Seasons</th>
+          <th>First Year</th>
+          <th>Last Year</th>
+        </tr>
       </thead>
 
       <tbody>
         ${gamesTable}
       </tbody>
+
     </table>
-
-  </div>
-
-</div>
-          <tr>
-            <th>#</th>
-            <th class="left">First Name</th>
-            <th class="left">Last Name</th>
-            <th>Total</th>
-            <th>1st Grade</th>
-            <th>2nd Grade</th>
-            <th>3rd Grade</th>
-            <th>U18</th>
-            <th>Womens</th>
-            <th>Other</th>
-            <th>Seasons</th>
-            <th>First Year</th>
-            <th>Last Year</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          ${gamesTable}
-        </tbody>
-      </table>
-
-    </div>
 
   </div>
 
