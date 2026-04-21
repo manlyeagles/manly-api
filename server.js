@@ -182,11 +182,15 @@ thead th {
   z-index: 20;
 }
 
+/* base row colour */
+tbody td {
+  background: #ffffff;
+  color: #000;
+}
+
+/* alternating rows */
 tbody tr:nth-child(even) td {
   background: #f5f5f5;
-}
-tbody td
-  background: #ffffff;
 }
 
 .left { text-align: left; }
