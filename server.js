@@ -178,7 +178,7 @@ thead th {
   position: sticky;
   top: 0;
   background: #800000;
-  color: maroon;
+  color: white;
   z-index: 20;
 }
 
@@ -200,7 +200,7 @@ th:nth-child(1), td:nth-child(1),
 th:nth-child(2), td:nth-child(2),
 th:nth-child(3), td:nth-child(3) {
   position: sticky;
-  background: #fff;
+  background: #800000;
   z-index: 10;
 }
 
