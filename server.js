@@ -189,9 +189,9 @@ tbody tr:nth-child(even) {
 .center { text-align: center; }
 
 /* FIXED WIDTHS */
-th:nth-child(1), td:nth-child(1) { width: 40px; }
-th:nth-child(2), td:nth-child(2) { width: 100px; }
-th:nth-child(3), td:nth-child(3) { width: 100px; }
+th:nth-child(1), td:nth-child(1) { width: 25px; }
+th:nth-child(2), td:nth-child(2) { width: 70px; }
+th:nth-child(3), td:nth-child(3) { width: 70px; }
 th:nth-child(n+4), td:nth-child(n+4) { width: 55px; }
 
 /* FREEZE */
@@ -286,3 +286,5 @@ function toggle(id){
 });
 
 app.listen(3001, () => console.log("Server running"));
+
+
