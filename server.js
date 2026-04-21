@@ -27,15 +27,21 @@ app.get('/leaderboard/view', async (req, res) => {
     const grade = req.query.grade || '';
     const search = req.query.search || '';
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players(first_name,last_name)`;
+    let url = let url =
+`${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
 
     if (search) {
-      const safe = search.replace(/[^a-zA-Z0-9]/g, '');
-      url += `&or=(players.first_name.ilike.*${safe}*,players.last_name.ilike.*${safe}*)`;
-    }
+      const safe = search.toLowerCase();
+
+const filtered = data.filter(p => {
+  const first = p.players?.first_name?.toLowerCase() || '';
+  const last = p.players?.last_name?.toLowerCase() || '';
+  return first.includes(safe) || last.includes(safe);
+});
+
 
     // MAIN DATA FETCH (SAFE)
     let json = await safeFetchJson(url);
