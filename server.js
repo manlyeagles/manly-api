@@ -12,7 +12,11 @@ async function safeFetchJson(url) {
     }
   });
 
-  const json = await res.json();
+ const json = await safeFetchJson(url);
+
+const data = Array.isArray(json) ? json : json.data;
+
+console.log("RAW DATA SAMPLE:", data?.slice(0, 10));
 
   if (!res.ok) {
     throw new Error(json.message || 'Supabase request failed');
