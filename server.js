@@ -156,13 +156,14 @@ html, body {
 
 .table-wrapper {
   flex: 1;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 
 table {
   border-collapse: collapse;
-  width: 100%;
-  table-layout: fixed;
+  width: max-content;     /* allows table to size naturally */
+  min-width: 100%;        /* keeps it inside frame */
 }
 
 th, td {
@@ -177,7 +178,7 @@ thead th {
   position: sticky;
   top: 0;
   background: #800000;
-  color: white;
+  color: maroon;
   z-index: 20;
 }
 
