@@ -27,7 +27,7 @@ app.get('/leaderboard/view', async (req, res) => {
     const grade = req.query.grade || '';
     const search = req.query.search || '';
 
-    let url = let url =
+    let url =
 `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
