@@ -156,47 +156,63 @@ ${grades.map(g=>`<td class="center">${player.seasons[season][g]||''}</td>`).join
     // HTML
     // =========================
     res.send(`
+res.send(`
 <html>
+
 <head>
+
 <style>
-/* RESET */
+
+/* ===== BASE ===== */
 html, body {
   margin: 0;
-  padding: 0;
+  height: 100%;
+  overflow: hidden;
   font-family: Arial;
 }
 
-/* HEADER + CONTROLS */
+/* ===== HEADER ===== */
 .header {
   text-align: center;
   padding: 10px;
 }
 
+/* ===== CONTROLS ===== */
 .controls {
   padding: 10px;
   border-bottom: 1px solid #ccc;
 }
 
 .button-bar {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 
-/* 🔥 SCROLL FIX */
-.table-container {
-  width: 100%;
-  overflow-x: auto;   /* horizontal scroll */
-  overflow-y: hidden; /* no inner vertical scroll */
-  display: block;
+/* ===== LAYOUT ===== */
+.main {
+  height: calc(100vh - 150px);
+  display: flex;
+  flex-direction: column;
 }
 
-/* TABLE */
+/* vertical scroll */
+.table-vertical {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* horizontal scroll */
+.table-horizontal {
+  overflow-x: scroll;
+}
+
+/* ===== TABLE ===== */
 table {
   border-collapse: collapse;
-  width: max-content;   /* allows expansion */
-  min-width: 1600px;   /* forces horizontal scrollbar */
+  width: max-content;
+  min-width: 1800px;
 }
 
 th, td {
@@ -204,20 +220,20 @@ th, td {
   white-space: nowrap;
 }
 
-/* HEADER */
+/* sticky header */
 thead th {
   position: sticky;
   top: 0;
   background: #800000;
   color: white;
-  text-align: center;
+  z-index: 6;
 }
 
-/* ALIGNMENT */
+/* alignment */
 .left { text-align: left; }
 .center { text-align: center; }
 
-/* ROW STYLING */
+/* row styling */
 tr:nth-child(even) td {
   background: #f5f5f5;
 }
@@ -226,6 +242,36 @@ tr:nth-child(even) td {
   background: #eef;
   font-weight: bold;
   cursor: pointer;
+}
+
+/* ===== FREEZE COLUMNS ===== */
+th:nth-child(1), td:nth-child(1) { width:60px; }
+th:nth-child(2), td:nth-child(2) { width:140px; }
+th:nth-child(3), td:nth-child(3) { width:140px; }
+
+th:nth-child(1), td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 5;
+}
+
+th:nth-child(2), td:nth-child(2) {
+  position: sticky;
+  left: 60px;
+  background: #fff;
+  z-index: 5;
+}
+
+th:nth-child(3), td:nth-child(3) {
+  position: sticky;
+  left: 200px;
+  background: #fff;
+  z-index: 5;
+}
+
+td:nth-child(3), th:nth-child(3) {
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
 
 </style>
@@ -237,78 +283,46 @@ function toggle(id){
       r.style.display==='none' ? 'table-row' : 'none');
 }
 </script>
+
 </head>
 
 <body>
 
-<div class="header">
-<h1>MANLY EAGLES BASEBALL</h1>
-<h2>HISTORICAL STATISTICS</h2>
-<h3>1950 - CURRENT DAY</h3>
-</div>
-
-<div class="controls">
-
-<!-- TABS -->
-<div class="button-bar">
-<button onclick="location.href='?tab=games'">All Games Played</button>
-<button onclick="location.href='?tab=hitting'">Hitting</button>
-<button onclick="location.href='?tab=pitching'">Pitching</button>
-<button onclick="location.href='?tab=fielding'">Fielding</button>
-</div>
-
-<!-- GRADE -->
-<div class="button-bar">
-<button onclick="location.href='?grade=&tab=${tab}'">All</button>
-<button onclick="location.href='?grade=First Grade&tab=${tab}'">First</button>
-<button onclick="location.href='?grade=Second Grade&tab=${tab}'">Second</button>
-<button onclick="location.href='?grade=Third Grade&tab=${tab}'">Third</button>
-<button onclick="location.href='?grade=Under 18&tab=${tab}'">U18</button>
-<button onclick="location.href='?grade=Womens&tab=${tab}'">Womens</button>
-<button onclick="location.href='?grade=Other&tab=${tab}'">Other</button>
-</div>
-
-<form method="GET">
-<input name="search" placeholder="Search..." value="${search}">
-<button>Search</button>
-
-<select name="season" onchange="this.form.submit()">
-${seasonOptions}
-</select>
-
-<input type="hidden" name="grade" value="${grade}">
-<input type="hidden" name="tab" value="${tab}">
-</form>
-
-</div>
-
-<div class="table-container">
-
-${tab === 'games' ? `
 <h2>All Games Played</h2>
-<table>
-<thead>
-<tr>
-<th>#</th>
-<th class="left">First</th>
-<th class="left">Last</th>
-<th>Total</th>
-<th>First</th>
-<th>Second</th>
-<th>Third</th>
-<th>U18</th>
-<th>Womens</th>
-<th>Other</th>
-<th>Seasons</th>
-<th>First Year</th>
-<th>Last Year</th>
-</tr>
-</thead>
-<tbody>
-${gamesTable}
-</tbody>
-</table>
-` : `<h2 style="padding:20px;">Coming Next</h2>`}
+
+<div class="main">
+
+  <div class="table-vertical">
+
+    <div class="table-horizontal">
+
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th class="left">First</th>
+            <th class="left">Last</th>
+            <th>Total</th>
+            <th>First</th>
+            <th>Second</th>
+            <th>Third</th>
+            <th>U18</th>
+            <th>Womens</th>
+            <th>Other</th>
+            <th>Seasons</th>
+            <th>First Year</th>
+            <th>Last Year</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          ${gamesTable}
+        </tbody>
+      </table>
+
+    </div>
+
+  </div>
 
 </div>
 
