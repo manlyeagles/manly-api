@@ -187,7 +187,6 @@ tbody tr:nth-child(even) td {
 }
 tbody td
   background: #ffffff;
-Color: #maroon
 }
 
 .left { text-align: left; }
