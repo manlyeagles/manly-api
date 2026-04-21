@@ -168,7 +168,7 @@ table {
 
 th, td {
   padding: 1px 3px;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -186,8 +186,8 @@ tbody tr:nth-child(even) td {
   background: #f5f5f5;
 }
 tbody td
-  background: #800000;
-Color: #ffffff
+  background: #ffffff;
+Color: #maroon
 }
 
 .left { text-align: left; }
