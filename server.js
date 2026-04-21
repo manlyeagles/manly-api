@@ -175,10 +175,10 @@ html, body {
 }
 
 .table-container {
-  height: calc(100vh - 140px); /* adjust header space */
-  overflow: auto;
+  width: 100%;
+  overflow-x: auto;   /* ONLY horizontal scroll */
+  overflow-y: visible; /* let page handle vertical */
 }
-
 
 table {
   border-collapse: collapse;
