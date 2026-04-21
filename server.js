@@ -168,10 +168,17 @@ body { margin:0; font-family:Arial; }
 .button-bar { margin-bottom:8px; display:flex; gap:6px; flex-wrap:wrap; }
 
 /* SINGLE SCROLL AREA */
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden; /* 🚨 THIS STOPS OUTER SCROLL */
+}
+
 .table-container {
-  height: calc(100vh - 180px);
+  height: calc(100vh - 140px); /* adjust header space */
   overflow: auto;
 }
+
 
 table {
   border-collapse: collapse;
@@ -291,3 +298,5 @@ ${gamesTable}
 });
 
 app.listen(3001, () => console.log("Server running"));
+
+
