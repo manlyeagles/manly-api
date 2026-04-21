@@ -167,7 +167,7 @@ table {
 }
 
 th, td {
-  padding: 2px 4px;
+  padding: 1px 3px;
   font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
@@ -183,7 +183,7 @@ thead th {
 }
 
 tbody tr:nth-child(even) {
-  background: #f5f5f5;
+  background: #fff;
 }
 
 .left { text-align: left; }
