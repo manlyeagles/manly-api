@@ -156,13 +156,12 @@ ${grades.map(g=>`<td class="center">${player.seasons[season][g]||''}</td>`).join
     // HTML
     // =========================
 res.send(`
+res.send(`
 <html>
 
 <head>
 
 <style>
-
-/* ===== BASE ===== */
 html, body {
   margin: 0;
   height: 100%;
@@ -170,13 +169,13 @@ html, body {
   font-family: Arial;
 }
 
-/* ===== HEADER ===== */
+/* HEADER */
 .header {
   text-align: center;
   padding: 10px;
 }
 
-/* ===== CONTROLS ===== */
+/* CONTROLS */
 .controls {
   padding: 10px;
   border-bottom: 1px solid #ccc;
@@ -189,25 +188,25 @@ html, body {
   flex-wrap: wrap;
 }
 
-/* ===== LAYOUT ===== */
+/* LAYOUT */
 .main {
-  height: calc(100vh - 150px);
+  height: calc(100vh - 180px);
   display: flex;
   flex-direction: column;
 }
 
-/* vertical scroll */
+/* VERTICAL SCROLL */
 .table-vertical {
   flex: 1;
   overflow-y: auto;
 }
 
-/* horizontal scroll */
+/* HORIZONTAL SCROLL (ALWAYS VISIBLE) */
 .table-horizontal {
   overflow-x: scroll;
 }
 
-/* ===== TABLE ===== */
+/* TABLE */
 table {
   border-collapse: collapse;
   width: max-content;
@@ -219,7 +218,6 @@ th, td {
   white-space: nowrap;
 }
 
-/* sticky header */
 thead th {
   position: sticky;
   top: 0;
@@ -228,11 +226,9 @@ thead th {
   z-index: 6;
 }
 
-/* alignment */
 .left { text-align: left; }
 .center { text-align: center; }
 
-/* row styling */
 tr:nth-child(even) td {
   background: #f5f5f5;
 }
@@ -243,7 +239,7 @@ tr:nth-child(even) td {
   cursor: pointer;
 }
 
-/* ===== FREEZE COLUMNS ===== */
+/* FREEZE COLUMNS */
 th:nth-child(1), td:nth-child(1) { width:60px; }
 th:nth-child(2), td:nth-child(2) { width:140px; }
 th:nth-child(3), td:nth-child(3) { width:140px; }
@@ -272,7 +268,6 @@ th:nth-child(3), td:nth-child(3) {
 td:nth-child(3), th:nth-child(3) {
   box-shadow: 2px 0 5px rgba(0,0,0,0.1);
 }
-
 </style>
 
 <script>
@@ -287,7 +282,47 @@ function toggle(id){
 
 <body>
 
-<h2>All Games Played</h2>
+<div class="header">
+  <h1>MANLY EAGLES BASEBALL</h1>
+  <h2>HISTORICAL STATISTICS</h2>
+  <h3>1950 - CURRENT DAY</h3>
+</div>
+
+<div class="controls">
+
+  <!-- TABS -->
+  <div class="button-bar">
+    <button onclick="location.href='?tab=games'">All Games Played</button>
+    <button onclick="location.href='?tab=hitting'">Hitting</button>
+    <button onclick="location.href='?tab=pitching'">Pitching</button>
+    <button onclick="location.href='?tab=fielding'">Fielding</button>
+  </div>
+
+  <!-- GRADES -->
+  <div class="button-bar">
+    <button onclick="location.href='?grade=&tab=games'">All</button>
+    <button onclick="location.href='?grade=First Grade&tab=games'">First</button>
+    <button onclick="location.href='?grade=Second Grade&tab=games'">Second</button>
+    <button onclick="location.href='?grade=Third Grade&tab=games'">Third</button>
+    <button onclick="location.href='?grade=Under 18&tab=games'">U18</button>
+    <button onclick="location.href='?grade=Womens&tab=games'">Womens</button>
+    <button onclick="location.href='?grade=Other&tab=games'">Other</button>
+  </div>
+
+  <!-- SEARCH -->
+  <form method="GET">
+    <input name="search" placeholder="Search..." value="${search}">
+    <button>Search</button>
+
+    <select name="season" onchange="this.form.submit()">
+      ${seasonOptions}
+    </select>
+
+    <input type="hidden" name="grade" value="${grade}">
+    <input type="hidden" name="tab" value="games">
+  </form>
+
+</div>
 
 <div class="main">
 
@@ -299,12 +334,12 @@ function toggle(id){
         <thead>
           <tr>
             <th>#</th>
-            <th class="left">First</th>
-            <th class="left">Last</th>
+            <th class="left">First Name</th>
+            <th class="left">Last Name</th>
             <th>Total</th>
-            <th>First</th>
-            <th>Second</th>
-            <th>Third</th>
+            <th>1st Grade</th>
+            <th>2nd Grade</th>
+            <th>3rd Grade</th>
             <th>U18</th>
             <th>Womens</th>
             <th>Other</th>
@@ -327,6 +362,8 @@ function toggle(id){
 
 </body>
 </html>
+`);
+
 `);
 
   } catch (err) {
