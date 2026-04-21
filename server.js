@@ -364,8 +364,6 @@ function toggle(id){
 </html>
 `);
 
-`);
-
   } catch (err) {
     res.send(err.toString());
   }
