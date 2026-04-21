@@ -198,14 +198,16 @@ html, body {
 /* ===== TABLE ===== */
 table {
   border-collapse: collapse;
-  width: max-content;
-  min-width: 1800px;
+  width: 100%;
+  table-layout: fixed;
 }
 
-/* ===== CELLS ===== */
 th, td {
-  padding: 6px 10px;
+  padding: 3px 6px;
+  font-size: 12px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ===== HEADER ===== */
@@ -229,9 +231,10 @@ tbody tr:nth-child(even) {
 /* ===== FREEZE COLUMNS (FIXED PROPERLY) ===== */
 
 /* widths */
-th:nth-child(1), td:nth-child(1) { width: 70px; }
-th:nth-child(2), td:nth-child(2) { width: 160px; }
-th:nth-child(3), td:nth-child(3) { width: 160px; }
+th:nth-child(1), td:nth-child(1) { width: 50px; }
+th:nth-child(2), td:nth-child(2) { width: 120px; }
+th:nth-child(3), td:nth-child(3) { width: 120px; }
+th:nth-child(n+4), td:nth-child(n+4) { width: 70px; text-align: center; }
 
 /* sticky */
 th:nth-child(1), td:nth-child(1),
@@ -242,12 +245,10 @@ th:nth-child(3), td:nth-child(3) {
   z-index: 10;
 }
 
-/* exact positions */
 th:nth-child(1), td:nth-child(1) { left: 0; }
-th:nth-child(2), td:nth-child(2) { left: 70px; }
-th:nth-child(3), td:nth-child(3) { left: 230px; }
+th:nth-child(2), td:nth-child(2) { left: 50px; }
+th:nth-child(3), td:nth-child(3) { left: 170px; }
 
-/* header above frozen */
 thead th:nth-child(1),
 thead th:nth-child(2),
 thead th:nth-child(3) {
@@ -315,23 +316,24 @@ function toggle(id){
 
     <table>
 
-      <thead>
-        <tr>
-          <th class="num">#</th>
-          <th class="left">First Name</th>
-          <th class="left">Last Name</th>
-          <th>Total</th>
-          <th>1st Grade</th>
-          <th>2nd Grade</th>
-          <th>3rd Grade</th>
-          <th>U18</th>
-          <th>Womens</th>
-          <th>Other</th>
-          <th>Seasons</th>
-          <th>First Year</th>
-          <th>Last Year</th>
-        </tr>
-      </thead>
+    <thead>
+  <tr>
+    <th class="num">#</th>
+    <th class="left">First Name</th>
+    <th class="left">Last Name</th>
+    <th>Total</th>
+    <th>1G</th>
+    <th>2G</th>
+    <th>3G</th>
+    <th>U18</th>
+    <th>W</th>
+    <th>Oth</th>
+    <th>Seas</th>
+    <th>First Yr</th>
+    <th>Last Yr</th>
+  </tr>
+</thead>
+
 
       <tbody>
         ${gamesTable}
