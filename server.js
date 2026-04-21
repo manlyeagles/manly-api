@@ -159,51 +159,75 @@ ${grades.map(g=>`<td class="center">${player.seasons[season][g]||''}</td>`).join
 <html>
 <head>
 <style>
-body { margin:0; font-family:Arial; }
-
-.header { text-align:center; padding:10px; }
-
-.controls { padding:10px; border-bottom:1px solid #ccc; }
-
-.button-bar { margin-bottom:8px; display:flex; gap:6px; flex-wrap:wrap; }
-
-/* SINGLE SCROLL AREA */
+/* RESET */
 html, body {
   margin: 0;
-  height: 100%;
-  overflow: hidden; /* 🚨 THIS STOPS OUTER SCROLL */
+  padding: 0;
+  font-family: Arial;
 }
 
+/* HEADER + CONTROLS */
+.header {
+  text-align: center;
+  padding: 10px;
+}
+
+.controls {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.button-bar {
+  margin-bottom: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* 🔥 SCROLL FIX */
 .table-container {
   width: 100%;
-  overflow-x: auto;   /* ONLY horizontal scroll */
-  overflow-y: visible; /* let page handle vertical */
+  overflow-x: auto;   /* horizontal scroll */
+  overflow-y: hidden; /* no inner vertical scroll */
+  display: block;
 }
 
+/* TABLE */
 table {
   border-collapse: collapse;
-  width: max-content;
-  min-width: 1600px;
+  width: max-content;   /* allows expansion */
+  min-width: 1600px;   /* forces horizontal scrollbar */
 }
 
 th, td {
-  padding:4px 6px;
+  padding: 4px 6px;
   white-space: nowrap;
 }
 
+/* HEADER */
 thead th {
   position: sticky;
   top: 0;
   background: #800000;
   color: white;
+  text-align: center;
 }
 
-.left { text-align:left; }
-.center { text-align:center; }
+/* ALIGNMENT */
+.left { text-align: left; }
+.center { text-align: center; }
 
-tr:nth-child(even) td { background:#f5f5f5; }
+/* ROW STYLING */
+tr:nth-child(even) td {
+  background: #f5f5f5;
+}
 
-.main-row { background:#eef; cursor:pointer; font-weight:bold; }
+.main-row {
+  background: #eef;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 </style>
 
 <script>
