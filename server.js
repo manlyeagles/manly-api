@@ -163,6 +163,7 @@ res.send(`
 
 <style>
 /* PAGE LOCK */
+/* ===== BASE ===== */
 html, body {
   margin: 0;
   height: 100%;
@@ -170,76 +171,87 @@ html, body {
   font-family: Arial;
 }
 
-/* HEADER + CONTROLS */
+/* ===== HEADER ===== */
 .header {
   padding: 10px;
   text-align: center;
 }
 
+/* ===== CONTROLS ===== */
 .controls {
   padding: 10px;
   border-bottom: 1px solid #ccc;
 }
 
-/* MAIN LAYOUT */
+/* ===== LAYOUT ===== */
 .main {
   height: calc(100vh - 170px);
   display: flex;
-  flex-direction: column;
 }
 
-/* SCROLL AREA */
+/* ===== SCROLL ===== */
 .table-wrapper {
   flex: 1;
-  overflow: auto; /* ✅ ONE SCROLL ONLY */
+  overflow: auto; /* ONE SCROLL ONLY */
 }
 
-/* TABLE */
+/* ===== TABLE ===== */
 table {
   border-collapse: collapse;
   width: max-content;
   min-width: 1800px;
 }
 
-/* CELLS */
+/* ===== CELLS ===== */
 th, td {
-  padding: 4px 8px;
+  padding: 6px 10px;
   white-space: nowrap;
 }
 
-/* HEADER FIX */
+/* ===== HEADER ===== */
 thead th {
   position: sticky;
   top: 0;
   background: #800000;
   color: white;
-  z-index: 10;
+  z-index: 20;
 }
 
-/* ROWS */
-tr:nth-child(even) td {
+/* ===== ROW STRIPING (FIXED) ===== */
+tbody tr:nth-child(even) {
   background: #f5f5f5;
 }
 
-/* FREEZE COLUMNS (FIXED PROPERLY) */
+/* ===== ALIGNMENT ===== */
+.left { text-align: left; }
+.center { text-align: center; }
+
+/* ===== FREEZE COLUMNS (FIXED PROPERLY) ===== */
+
+/* widths */
+th:nth-child(1), td:nth-child(1) { width: 70px; }
+th:nth-child(2), td:nth-child(2) { width: 160px; }
+th:nth-child(3), td:nth-child(3) { width: 160px; }
+
+/* sticky */
 th:nth-child(1), td:nth-child(1),
 th:nth-child(2), td:nth-child(2),
 th:nth-child(3), td:nth-child(3) {
   position: sticky;
-  background: white;
-  z-index: 5;
+  background: #fff;
+  z-index: 10;
 }
 
-/* EXACT LEFT POSITIONS (NO OVERLAP) */
+/* exact positions */
 th:nth-child(1), td:nth-child(1) { left: 0; }
-th:nth-child(2), td:nth-child(2) { left: 80px; }
-th:nth-child(3), td:nth-child(3) { left: 240px; }
+th:nth-child(2), td:nth-child(2) { left: 70px; }
+th:nth-child(3), td:nth-child(3) { left: 230px; }
 
-/* HEADER OVERLAY FIX */
+/* header above frozen */
 thead th:nth-child(1),
 thead th:nth-child(2),
 thead th:nth-child(3) {
-  z-index: 15;
+  z-index: 30;
 }
 </style>
 
@@ -305,7 +317,7 @@ function toggle(id){
 
       <thead>
         <tr>
-          <th>#</th>
+          <th class="num">#</th>
           <th class="left">First Name</th>
           <th class="left">Last Name</th>
           <th>Total</th>
