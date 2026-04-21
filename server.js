@@ -12,9 +12,6 @@ app.get('/leaderboard/view', async (req, res) => {
     const search = req.query.search || '';
     const tab = req.query.tab || 'games';
 
-    // =========================
-    // FETCH DATA
-    // =========================
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players!inner(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
@@ -34,9 +31,6 @@ app.get('/leaderboard/view', async (req, res) => {
 
     const data = await resData.json();
 
-    // =========================
-    // FETCH SEASONS
-    // =========================
     const seasonsRes = await fetch(`${SUPABASE_URL}/rest/v1/seasons?select=season_name&order=season_name.desc`, {
       headers: {
         apikey: SUPABASE_KEY,
@@ -55,9 +49,6 @@ app.get('/leaderboard/view', async (req, res) => {
       `).join('')}
     `;
 
-    // =========================
-    // GROUP DATA
-    // =========================
     const playersMap = {};
 
     data.forEach(p => {
@@ -84,9 +75,6 @@ app.get('/leaderboard/view', async (req, res) => {
 
     let players = Object.values(playersMap);
 
-    // =========================
-    // SORT BY TOTAL
-    // =========================
     players.sort((a,b)=>{
       const sum = obj => Object.values(obj.seasons)
         .flatMap(g=>Object.values(g))
@@ -94,11 +82,7 @@ app.get('/leaderboard/view', async (req, res) => {
       return sum(b) - sum(a);
     });
 
-    // =========================
-    // TABLE BUILDER (GAMES)
-    // =========================
     function buildGamesTable(players){
-
       const grades = ['First Grade','Second Grade','Third Grade','Under 18','Womens','Other'];
       let rows = '';
 
@@ -124,9 +108,7 @@ app.get('/leaderboard/view', async (req, res) => {
 <td class="left">${player.first_name}</td>
 <td class="left">${player.last_name}</td>
 <td class="center"><b>${total}</b></td>
-
 ${grades.map(g=>`<td class="center"><b>${gradeTotals[g]||''}</b></td>`).join('')}
-
 <td class="center">${seasons.length}</td>
 <td class="center">${seasons[0]||''}</td>
 <td class="center">${seasons[seasons.length-1]||''}</td>
@@ -152,18 +134,11 @@ ${grades.map(g=>`<td class="center">${player.seasons[season][g]||''}</td>`).join
 
     const gamesTable = buildGamesTable(players);
 
-    // =========================
-    // HTML
-    // =========================
-
-res.send(`
+    res.send(`
 <html>
-
 <head>
 
 <style>
-/* PAGE LOCK */
-/* ===== BASE ===== */
 html, body {
   margin: 0;
   height: 100%;
@@ -171,31 +146,19 @@ html, body {
   font-family: Arial;
 }
 
-/* ===== HEADER ===== */
-.header {
-  padding: 10px;
-  text-align: center;
-}
+.header { padding: 10px; text-align: center; }
+.controls { padding: 10px; border-bottom: 1px solid #ccc; }
 
-/* ===== CONTROLS ===== */
-.controls {
-  padding: 10px;
-  border-bottom: 1px solid #ccc;
-}
-
-/* ===== LAYOUT ===== */
 .main {
   height: calc(100vh - 170px);
   display: flex;
 }
 
-/* ===== SCROLL ===== */
 .table-wrapper {
   flex: 1;
-  overflow: auto; /* ONE SCROLL ONLY */
+  overflow: auto;
 }
 
-/* ===== TABLE ===== */
 table {
   border-collapse: collapse;
   width: 100%;
@@ -204,13 +167,12 @@ table {
 
 th, td {
   padding: 2px 4px;
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* ===== HEADER ===== */
 thead th {
   position: sticky;
   top: 0;
@@ -219,24 +181,20 @@ thead th {
   z-index: 20;
 }
 
-/* ===== ROW STRIPING (FIXED) ===== */
 tbody tr:nth-child(even) {
   background: #f5f5f5;
 }
 
-/* ===== ALIGNMENT ===== */
 .left { text-align: left; }
 .center { text-align: center; }
 
-/* ===== FREEZE COLUMNS (FIXED PROPERLY) ===== */
-
-/* widths */
+/* FIXED WIDTHS */
 th:nth-child(1), td:nth-child(1) { width: 40px; }
-th:nth-child(2), td:nth-child(2) { width: 900px; }
-th:nth-child(3), td:nth-child(3) { width: 900px; }
-th:nth-child(n+4), td:nth-child(n+4) { width: 50px; text-align: center; }
+th:nth-child(2), td:nth-child(2) { width: 100px; }
+th:nth-child(3), td:nth-child(3) { width: 100px; }
+th:nth-child(n+4), td:nth-child(n+4) { width: 55px; }
 
-/* sticky */
+/* FREEZE */
 th:nth-child(1), td:nth-child(1),
 th:nth-child(2), td:nth-child(2),
 th:nth-child(3), td:nth-child(3) {
@@ -247,7 +205,7 @@ th:nth-child(3), td:nth-child(3) {
 
 th:nth-child(1), td:nth-child(1) { left: 0; }
 th:nth-child(2), td:nth-child(2) { left: 40px; }
-th:nth-child(3), td:nth-child(3) { left: 130px; }
+th:nth-child(3), td:nth-child(3) { left: 140px; }
 
 thead th:nth-child(1),
 thead th:nth-child(2),
@@ -275,27 +233,6 @@ function toggle(id){
 </div>
 
 <div class="controls">
-
-  <!-- TABS -->
-  <div class="button-bar">
-    <button onclick="location.href='?tab=games'">All Games Played</button>
-    <button onclick="location.href='?tab=hitting'">Hitting</button>
-    <button onclick="location.href='?tab=pitching'">Pitching</button>
-    <button onclick="location.href='?tab=fielding'">Fielding</button>
-  </div>
-
-  <!-- GRADES -->
-  <div class="button-bar">
-    <button onclick="location.href='?grade=&tab=games'">All</button>
-    <button onclick="location.href='?grade=First Grade&tab=games'">First</button>
-    <button onclick="location.href='?grade=Second Grade&tab=games'">Second</button>
-    <button onclick="location.href='?grade=Third Grade&tab=games'">Third</button>
-    <button onclick="location.href='?grade=Under 18&tab=games'">U18</button>
-    <button onclick="location.href='?grade=Womens&tab=games'">Womens</button>
-    <button onclick="location.href='?grade=Other&tab=games'">Other</button>
-  </div>
-
-  <!-- SEARCH -->
   <form method="GET">
     <input name="search" placeholder="Search..." value="${search}">
     <button>Search</button>
@@ -307,42 +244,36 @@ function toggle(id){
     <input type="hidden" name="grade" value="${grade}">
     <input type="hidden" name="tab" value="games">
   </form>
-
 </div>
 
 <div class="main">
-
   <div class="table-wrapper">
 
     <table>
-
-    <thead>
-  <tr>
-    <th class="num">#</th>
-    <th class="left">First Name</th>
-    <th class="left">Last Name</th>
-    <th>Total</th>
-    <th>1G</th>
-    <th>2G</th>
-    <th>3G</th>
-    <th>U18</th>
-    <th>W</th>
-    <th>Oth</th>
-    <th>#S</th>
-    <th>First</th>
-    <th>Last</th>
-  </tr>
-</thead>
-
+      <thead>
+        <tr>
+          <th>#</th>
+          <th class="left">First</th>
+          <th class="left">Last</th>
+          <th>Total</th>
+          <th>1G</th>
+          <th>2G</th>
+          <th>3G</th>
+          <th>U18</th>
+          <th>W</th>
+          <th>Oth</th>
+          <th>#S</th>
+          <th>First</th>
+          <th>Last</th>
+        </tr>
+      </thead>
 
       <tbody>
         ${gamesTable}
       </tbody>
-
     </table>
 
   </div>
-
 </div>
 
 </body>
@@ -355,5 +286,3 @@ function toggle(id){
 });
 
 app.listen(3001, () => console.log("Server running"));
-
-
