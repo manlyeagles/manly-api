@@ -155,7 +155,6 @@ ${grades.map(g=>`<td class="center">${player.seasons[season][g]||''}</td>`).join
     // =========================
     // HTML
     // =========================
-    res.send(`
 res.send(`
 <html>
 
