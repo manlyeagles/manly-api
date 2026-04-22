@@ -109,6 +109,6 @@ app.get('/leaderboard/games', async (req, res) => {
   }
 });
 
-
+app.listen(3001, () => console.log("Server running"));
 
 
