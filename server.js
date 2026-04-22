@@ -1,3 +1,26 @@
+const express = require('express');
+const app = express();
+
+const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
+
+async function safeFetchJson(url) {
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || 'Supabase request failed');
+  }
+
+  return json;
+}
+
 app.get('/leaderboard/games', async (req, res) => {
   try {
     const season = req.query.season || '';
@@ -185,11 +208,12 @@ app.get('/leaderboard/games', async (req, res) => {
 </body>
 </html>
     `);
-
   } catch (err) {
     console.error(err);
     res.status(500).send(err.message);
   }
 });
+
+app.listen(3001, () => console.log('Server running'));
 
 
