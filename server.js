@@ -22,226 +22,93 @@ async function safeFetchJson(url) {
 }
 
 
-app.get('/leaderboard/view', async (req, res) => {
-try {
-const season = req.query.season || '';
-const grade = req.query.grade || '';
-const search = req.query.search || '';
+app.get('/leaderboard/games', async (req, res) => {
+  try {
+    const season = req.query.season || '';
+    const grade = req.query.grade || '';
 
-let url =
-`${SUPABASE_URL}/rest/v1/player_season_stats?select=*,players(first_name,last_name)`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
 
-if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
-if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
+    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
 
-// MAIN DATA FETCH
-let json = await safeFetchJson(url);
-let data = Array.isArray(json) ? json : json.data;
+    const json = await safeFetchJson(url);
+    let data = Array.isArray(json) ? json : json.data;
 
-if (!Array.isArray(data)) {
-return res.send("Error: Supabase did not return an array of stats.");
-}
+    if (!Array.isArray(data)) {
+      return res.status(500).send('Invalid stats response');
+    }
 
-// ✅ FIXED SEARCH (JS FILTER AFTER FETCH)
-if (search) {
-const safe = search.toLowerCase();
+    const playersMap = {};
 
-data = data.filter(p => {
-const first = p.players?.first_name?.toLowerCase() || '';
-const last = p.players?.last_name?.toLowerCase() || '';
-return first.includes(safe) || last.includes(safe);
-});
-}
+    data.forEach(p => {
+      const id = Number(p.player_id);
+      if (!id) return;
 
-// SEASONS FETCH
-const seasonsJson = await safeFetchJson(
-`${SUPABASE_URL}/rest/v1/seasons?select=season_name&order=season_name.desc`
-);
+      if (!playersMap[id]) {
+        playersMap[id] = {
+          player_id: id,
+          first_name: p.players?.first_name || p.first_name || '',
+          last_name: p.players?.last_name || p.last_name || '',
+          games: 0
+        };
+      }
 
-const seasons = Array.isArray(seasonsJson)
-? seasonsJson
-: seasonsJson.data || [];
+      playersMap[id].games += Number(p.gp) || 0;
+    });
 
-const seasonOptions = `
-<option value="">All Seasons</option>
-${seasons.map(s => `
-<option value="${s.season_name}" ${season === s.season_name ? 'selected' : ''}>
-${s.season_name}
-</option>
-`).join('')}
-`;
+    let players = Object.values(playersMap)
+      .sort((a, b) => b.games - a.games)
+      .slice(0, 10);
 
-const playersMap = {};
-
-data.forEach(p => {
-const id = p.player_id;
-
-if (!playersMap[id]) {
-playersMap[id] = {
-player_id: id,
-first_name: p.players?.first_name || '',
-last_name: p.players?.last_name || '',
-jersey: p.jersey_number,
-seasons: {}
-};
-}
-
-const s = p.season_id;
-const g = p.grade || 'Other';
-
-if (!playersMap[id].seasons[s]) playersMap[id].seasons[s] = {};
-if (!playersMap[id].seasons[s][g]) playersMap[id].seasons[s][g] = 0;
-
-playersMap[id].seasons[s][g] += Number(p.gp) || 0;
-});
-
-let players = Object.values(playersMap);
-
-players.sort((a, b) => {
-const sum = obj =>
-Object.values(obj.seasons)
-.flatMap(g => Object.values(g))
-.reduce((x, y) => x + y, 0);
-
-return sum(b) - sum(a);
-});
-
-function buildGamesTable(players) {
-const grades = ['First Grade', 'Second Grade', 'Third Grade', 'Under 18', 'Womens', 'Other'];
-let rows = '';
-
-players.forEach(player => {
-const gradeTotals = {};
-grades.forEach(g => gradeTotals[g] = 0);
-
-const seasons = Object.keys(player.seasons).sort();
-
-seasons.forEach(season => {
-Object.entries(player.seasons[season]).forEach(([g, v]) => {
-if (gradeTotals[g] !== undefined) gradeTotals[g] += v;
-else gradeTotals['Other'] += v;
-});
-});
-
-const total = Object.values(gradeTotals).reduce((a, b) => a + b, 0);
-
-rows += `
-<tr class="main-row" onclick="toggle('${player.player_id}')">
-<td class="center">${player.jersey || ''}</td>
-<td class="left">${player.first_name}</td>
-<td class="left">${player.last_name}</td>
-<td class="center"><b>${total}</b></td>
-${grades.map(g => `<td class="center"><b>${gradeTotals[g] || ''}</b></td>`).join('')}
-<td class="center">${seasons.length}</td>
-<td class="center">${seasons[0] || ''}</td>
-<td class="center">${seasons[seasons.length - 1] || ''}</td>
-</tr>
-`;
-});
-
-return rows;
-}
-
-const gamesTable = buildGamesTable(players);
+    const rows = players.map((p, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${p.first_name}</td>
+        <td>${p.last_name}</td>
+        <td>${p.games}</td>
+      </tr>
+    `).join('');
 
     res.send(`
+<!DOCTYPE html>
 <html>
 <head>
-<style>
-html, body { margin:0; height:100%; overflow:hidden; font-family: Arial; }
-
-.header { padding: 10px; text-align: center; }
-.controls { padding: 10px; border-bottom: 1px solid #ccc; }
-
-.main { height: calc(100vh - 170px); display:flex; }
-
-.table-wrapper { flex:1; overflow:auto; }
-
-table { border-collapse: collapse; width:max-content; min-width:100%; }
-
-th, td {
-  padding: 1px 3px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-thead th {
-  position: sticky;
-  top: 0;
-  background: #800000;
-  color: white;
-  z-index: 20;
-}
-
-tbody td { background:#fff; }
-tbody tr:nth-child(even) td { background:#f5f5f5; }
-
-.left { text-align:left; }
-.center { text-align:center; }
-
-th:nth-child(1), td:nth-child(1) { width:25px; }
-th:nth-child(2), td:nth-child(2) { width:70px; }
-th:nth-child(3), td:nth-child(3) { width:70px; }
-th:nth-child(n+4), td:nth-child(n+4) { width:55px; }
-
-</style>
-
-<script>
-function toggle(id){
-  document.querySelectorAll('.detail-'+id)
-    .forEach(r => r.style.display =
-      r.style.display==='none' ? 'table-row' : 'none');
-}
-</script>
+  <meta charset="utf-8" />
+  <title>Top 10 Games Played</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-bottom: 12px; }
+    table { border-collapse: collapse; width: 100%; max-width: 700px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #800000; color: white; }
+    tr:nth-child(even) { background: #f7f7f7; }
+  </style>
 </head>
-
 <body>
-
-<div class="header">
-<h1>MANLY EAGLES BASEBALL</h1>
-<h2>HISTORICAL STATISTICS</h2>
-<h3>1950 - CURRENT DAY</h3>
-</div>
-
-<div class="controls">
-<form method="GET">
-<input name="search" value="${search}" placeholder="Search...">
-<button>Search</button>
-
-<select name="season" onchange="this.form.submit()">
-${seasonOptions}
-</select>
-</form>
-</div>
-
-<div class="main">
-<div class="table-wrapper">
-<table>
-<thead>
-<tr>
-<th>#</th><th>First</th><th>Last</th><th>Total</th>
-<th>1G</th><th>2G</th><th>3G</th><th>U18</th><th>W</th><th>Oth</th>
-<th>#S</th><th>First</th><th>Last</th>
-</tr>
-</thead>
-<tbody>
-${gamesTable}
-</tbody>
-</table>
-</div>
-</div>
-
+  <h2>Top 10 Games Played${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Rank</th>
+        <th>First</th>
+        <th>Last</th>
+        <th>Games</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
 </body>
 </html>
     `);
-
   } catch (err) {
     console.error(err);
     res.status(500).send(err.message);
   }
 });
 
-app.listen(3001, () => console.log("Server running"));
 
 
 
