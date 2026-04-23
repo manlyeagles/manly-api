@@ -32,7 +32,7 @@ app.get('/leaderboard/games', async (req, res) => {
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
 
     const json = await safeFetchJson(url);
-    let data = Array.isArray(json) ? json : json.data;
+    const data = Array.isArray(json) ? json : json.data;
 
     if (!Array.isArray(data)) {
       return res.status(500).send('Invalid stats response');
@@ -55,7 +55,7 @@ app.get('/leaderboard/games', async (req, res) => {
         };
       }
 
-     const s = player.seasons[season];
+      const s = p.season_id || 'Unknown';
       const g = p.grade || 'Other';
       const gp = Number(p.gp) || 0;
 
@@ -67,7 +67,7 @@ app.get('/leaderboard/games', async (req, res) => {
       playersMap[id].seasons[s][g] += gp;
     });
 
-    let players = Object.values(playersMap)
+    const players = Object.values(playersMap)
       .sort((a, b) => b.total_games - a.total_games)
       .slice(0, 10);
 
@@ -87,18 +87,18 @@ app.get('/leaderboard/games', async (req, res) => {
           });
         });
 
-rows += `
-<tr class="detail-${player.player_id}" style="display:none;">
-  <td></td>
-  <td colspan="2">${season}</td>
-  <td></td>
-  ${grades.map(g => `<td class="center">${player.seasons[season]?.[g] || ''}</td>`).join('')}
-  <td></td>
-  <td></td>
-  <td></td>
+        rows += `
+<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
+  <td class="center">${index + 1}</td>
+  <td class="left">${player.first_name}</td>
+  <td class="left">${player.last_name}</td>
+  <td class="center"><b>${player.total_games}</b></td>
+  ${grades.map(g => `<td class="center"><b>${gradeTotals[g] || ''}</b></td>`).join('')}
+  <td class="center">${seasons.length}</td>
+  <td class="center">${seasons[0] || ''}</td>
+  <td class="center">${seasons[seasons.length - 1] || ''}</td>
 </tr>
 `;
-
 
         seasons.slice().reverse().forEach(season => {
           rows += `
@@ -106,7 +106,7 @@ rows += `
   <td></td>
   <td colspan="2">${season}</td>
   <td></td>
- ${grades.map(g => `<td class="center">${player.seasons[season]?.[g] || ''}</td>`).join('')}
+  ${grades.map(g => `<td class="center">${player.seasons[season]?.[g] || ''}</td>`).join('')}
   <td></td>
   <td></td>
   <td></td>
@@ -130,100 +130,76 @@ rows += `
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
     h2 { margin-bottom: 12px; }
-
-    .table-wrapper {
-      overflow-x: auto;
-    }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      min-width: 1000px;
-    }
-
+    .table-wrapper { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 1000px; }
     th, td {
       border: 1px solid #ddd;
       padding: 6px 8px;
       font-size: 12px;
       white-space: nowrap;
     }
-
     th {
       background: #800000;
       color: white;
       text-align: center;
-    }
-
-    td.left { text-align: left; }
-    td.center { text-align: center; }
-
-    tbody tr:nth-child(even) td {
-      background: #f7f7f7;
-    }
-
-    .main-row {
       cursor: pointer;
     }
-
-    .main-row:hover td {
-      background: #f0e6e6;
-    }
+    td.left { text-align: left; }
+    td.center { text-align: center; }
+    tbody tr:nth-child(even) td { background: #f7f7f7; }
+    .main-row { cursor: pointer; }
+    .main-row:hover td { background: #f0e6e6; }
   </style>
-
-<script>
-  function toggle(id) {
-    document.querySelectorAll('.detail-' + id).forEach(row => {
-      row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-    });
-  }
-
-  function sortTable(tableId, colIndex, isNumeric) {
-    const table = document.getElementById(tableId);
-    const tbody = table.querySelector('tbody');
-    const allRows = Array.from(tbody.querySelectorAll('tr'));
-
-    const mainRows = allRows.filter(row => row.classList.contains('main-row'));
-
-    const groups = mainRows.map(mainRow => {
-      const playerId = mainRow.getAttribute('data-player-id');
-      const detailRows = allRows.filter(r => r.classList.contains('detail-' + playerId));
-      return { mainRow, detailRows };
-    });
-
-    const currentDir = table.getAttribute('data-sort-dir') || 'desc';
-    const currentCol = table.getAttribute('data-sort-col');
-
-    let newDir = 'asc';
-    if (currentCol == colIndex && currentDir === 'asc') {
-      newDir = 'desc';
+  <script>
+    function toggle(id) {
+      document.querySelectorAll('.detail-' + id).forEach(row => {
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+      });
     }
 
-    groups.sort((a, b) => {
-      let aText = a.mainRow.children[colIndex].innerText.trim();
-      let bText = b.mainRow.children[colIndex].innerText.trim();
+    function sortTable(tableId, colIndex, isNumeric) {
+      const table = document.getElementById(tableId);
+      const tbody = table.querySelector('tbody');
+      const allRows = Array.from(tbody.querySelectorAll('tr'));
+      const mainRows = allRows.filter(row => row.classList.contains('main-row'));
 
-      if (isNumeric) {
-        const aNum = parseFloat(aText.replace(/[^0-9.\-]/g, '')) || 0;
-        const bNum = parseFloat(bText.replace(/[^0-9.\-]/g, '')) || 0;
-        return newDir === 'asc' ? aNum - bNum : bNum - aNum;
-      } else {
+      const groups = mainRows.map(mainRow => {
+        const playerId = mainRow.getAttribute('data-player-id');
+        const detailRows = allRows.filter(r => r.classList.contains('detail-' + playerId));
+        return { mainRow, detailRows };
+      });
+
+      const currentDir = table.getAttribute('data-sort-dir') || 'desc';
+      const currentCol = table.getAttribute('data-sort-col');
+      let newDir = 'asc';
+
+      if (currentCol == colIndex && currentDir === 'asc') newDir = 'desc';
+
+      groups.sort((a, b) => {
+        let aText = a.mainRow.children[colIndex].innerText.trim();
+        let bText = b.mainRow.children[colIndex].innerText.trim();
+
+        if (isNumeric) {
+          const aNum = parseFloat(aText.replace(/[^0-9.\\-]/g, '')) || 0;
+          const bNum = parseFloat(bText.replace(/[^0-9.\\-]/g, '')) || 0;
+          return newDir === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+
         return newDir === 'asc'
           ? aText.localeCompare(bText)
           : bText.localeCompare(aText);
-      }
-    });
+      });
 
-    tbody.innerHTML = '';
-    groups.forEach(group => {
-      tbody.appendChild(group.mainRow);
-      group.detailRows.forEach(detail => tbody.appendChild(detail));
-    });
+      tbody.innerHTML = '';
+      groups.forEach(group => {
+        tbody.appendChild(group.mainRow);
+        group.detailRows.forEach(detail => tbody.appendChild(detail));
+      });
 
-    table.setAttribute('data-sort-col', colIndex);
-    table.setAttribute('data-sort-dir', newDir);
-  }
-</script>
-
+      table.setAttribute('data-sort-col', colIndex);
+      table.setAttribute('data-sort-dir', newDir);
+    }
+  </script>
 </head>
 <body>
   <h2>Top 10 Games Played${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
@@ -232,19 +208,19 @@ rows += `
     <table id="leaderboardTable">
       <thead>
         <tr>
-          <th>Rank</th>
-          <th>First</th>
-          <th>Last</th>
-          <th>Total</th>
-          <th>First</th>
-          <th>Second</th>
-          <th>Third</th>
-          <th>U18</th>
-          <th>Womens</th>
-          <th>Other</th>
-          <th># Seasons</th>
-          <th>First Year</th>
-          <th>Last Year</th>
+          <th onclick="sortTable('leaderboardTable', 0, true)">Rank</th>
+          <th onclick="sortTable('leaderboardTable', 1, false)">First</th>
+          <th onclick="sortTable('leaderboardTable', 2, false)">Last</th>
+          <th onclick="sortTable('leaderboardTable', 3, true)">Total</th>
+          <th onclick="sortTable('leaderboardTable', 4, true)">First</th>
+          <th onclick="sortTable('leaderboardTable', 5, true)">Second</th>
+          <th onclick="sortTable('leaderboardTable', 6, true)">Third</th>
+          <th onclick="sortTable('leaderboardTable', 7, true)">U18</th>
+          <th onclick="sortTable('leaderboardTable', 8, true)">Womens</th>
+          <th onclick="sortTable('leaderboardTable', 9, true)">Other</th>
+          <th onclick="sortTable('leaderboardTable', 10, true)"># Seasons</th>
+          <th onclick="sortTable('leaderboardTable', 11, false)">First Year</th>
+          <th onclick="sortTable('leaderboardTable', 12, false)">Last Year</th>
         </tr>
       </thead>
       <tbody>
@@ -260,22 +236,20 @@ rows += `
     res.status(500).send(err.message);
   }
 });
+
 app.get('/leaderboard/hitting', async (req, res) => {
   try {
     const season = req.query.season || '';
     const grade = req.query.grade || '';
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,\"1B\",\"2B\",\"3B\",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name)`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
-    if (grade) {
-      url += `&grade=eq.${encodeURIComponent(grade)}`;
-    } else {
-      url += `&grade=neq.Womens`;
-    }
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
+    else url += `&grade=neq.Womens`;
 
     const json = await safeFetchJson(url);
-    let data = Array.isArray(json) ? json : json.data;
+    const data = Array.isArray(json) ? json : json.data;
 
     if (!Array.isArray(data)) {
       return res.status(500).send('Invalid stats response');
@@ -292,30 +266,11 @@ app.get('/leaderboard/hitting', async (req, res) => {
           player_id: id,
           first_name: p.players?.first_name || p.first_name || '',
           last_name: p.players?.last_name || p.last_name || '',
-          gp: 0,
-          pa: 0,
-          ab: 0,
-          h: 0,
-          single: 0,
-          double: 0,
-          triple: 0,
-          hr: 0,
-          rbi: 0,
-          r: 0,
-          so: 0,
-          kl: 0,
-          bb: 0,
-          hbp: 0,
-          roe: 0,
-          fc: 0,
-          ci: 0,
-          sac: 0,
-          sf: 0,
-          lob: 0,
-          pik: 0,
-          qab: 0,
-          sb: 0,
-          cs: 0,
+          gp: 0, pa: 0, ab: 0, h: 0,
+          single: 0, double: 0, triple: 0, hr: 0,
+          rbi: 0, r: 0, so: 0, kl: 0, bb: 0, hbp: 0,
+          roe: 0, fc: 0, ci: 0, sac: 0, sf: 0, lob: 0,
+          pik: 0, qab: 0, sb: 0, cs: 0,
           seasons: {}
         };
       }
@@ -370,34 +325,15 @@ app.get('/leaderboard/hitting', async (req, res) => {
       playersMap[id].sb += sb;
       playersMap[id].cs += cs;
 
-   const s = player.seasons[season];
+      const s = p.season_id || 'Unknown';
 
       if (!playersMap[id].seasons[s]) {
         playersMap[id].seasons[s] = {
-          gp: 0,
-          pa: 0,
-          ab: 0,
-          h: 0,
-          single: 0,
-          double: 0,
-          triple: 0,
-          hr: 0,
-          rbi: 0,
-          r: 0,
-          so: 0,
-          kl: 0,
-          bb: 0,
-          hbp: 0,
-          roe: 0,
-          fc: 0,
-          ci: 0,
-          sac: 0,
-          sf: 0,
-          lob: 0,
-          pik: 0,
-          qab: 0,
-          sb: 0,
-          cs: 0
+          gp: 0, pa: 0, ab: 0, h: 0,
+          single: 0, double: 0, triple: 0, hr: 0,
+          rbi: 0, r: 0, so: 0, kl: 0, bb: 0, hbp: 0,
+          roe: 0, fc: 0, ci: 0, sac: 0, sf: 0, lob: 0,
+          pik: 0, qab: 0, sb: 0, cs: 0
         };
       }
 
@@ -441,7 +377,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
       return ab > 0 ? tb / ab : 0;
     }
 
-    let players = Object.values(playersMap)
+    const players = Object.values(playersMap)
       .map(p => {
         const avg = p.ab > 0 ? p.h / p.ab : 0;
         const obp = calcObp(p.h, p.bb, p.hbp, p.ab, p.sf);
@@ -459,7 +395,43 @@ app.get('/leaderboard/hitting', async (req, res) => {
       players.forEach((player, index) => {
         const seasons = Object.keys(player.seasons).sort();
 
-       rows += `
+        rows += `
+<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
+  <td class="center">${index + 1}</td>
+  <td class="left">${player.first_name}</td>
+  <td class="left">${player.last_name}</td>
+  <td class="center">${player.gp}</td>
+  <td class="center">${player.pa}</td>
+  <td class="center">${player.ab}</td>
+  <td class="center">${player.h}</td>
+  <td class="center">${player.single}</td>
+  <td class="center">${player.double}</td>
+  <td class="center">${player.triple}</td>
+  <td class="center">${player.hr}</td>
+  <td class="center">${player.rbi}</td>
+  <td class="center">${player.r}</td>
+  <td class="center">${player.bb}</td>
+  <td class="center">${player.so}</td>
+  <td class="center"><b>${formatAvg(player.avg)}</b></td>
+  <td class="center">${formatAvg(player.obp)}</td>
+  <td class="center">${formatAvg(player.slg)}</td>
+  <td class="center">${formatAvg(player.ops)}</td>
+  <td class="center">${player.sb}</td>
+  <td class="center">${player.cs}</td>
+  <td class="center">${seasons.length}</td>
+  <td class="center">${seasons[0] || ''}</td>
+  <td class="center">${seasons[seasons.length - 1] || ''}</td>
+</tr>
+`;
+
+        seasons.slice().reverse().forEach(season => {
+          const s = player.seasons[season];
+          const avg = s.ab > 0 ? s.h / s.ab : 0;
+          const obp = calcObp(s.h, s.bb, s.hbp, s.ab, s.sf);
+          const slg = calcSlg(s.single, s.double, s.triple, s.hr, s.ab);
+          const ops = obp + slg;
+
+          rows += `
 <tr class="detail-${player.player_id}" style="display:none;">
   <td></td>
   <td colspan="2">${season}</td>
@@ -486,43 +458,9 @@ app.get('/leaderboard/hitting', async (req, res) => {
   <td></td>
 </tr>
 `;
+        });
+      });
 
-
-seasons.slice().reverse().forEach(season => {
- const s = player.seasons[season];
-  const avg = s.ab > 0 ? s.h / s.ab : 0;
-  const obp = calcObp(s.h, s.bb, s.hbp, s.ab, s.sf);
-  const slg = calcSlg(s.single, s.double, s.triple, s.hr, s.ab);
-  const ops = obp + slg;
-
-  rows += `
-<tr class="detail-${player.player_id}" style="display:none;">
-  <td></td>
-  <td colspan="2">${season}</td>
-  <td class="center">${s.gp}</td>
-  <td class="center">${s.pa}</td>
-  <td class="center">${s.ab}</td>
-  <td class="center">${s.h}</td>
-  <td class="center">${s.single}</td>
-  <td class="center">${s.double}</td>
-  <td class="center">${s.triple}</td>
-  <td class="center">${s.hr}</td>
-  <td class="center">${s.rbi}</td>
-  <td class="center">${s.r}</td>
-  <td class="center">${s.bb}</td>
-  <td class="center">${s.so}</td>
-  <td class="center">${formatAvg(avg)}</td>
-  <td class="center">${formatAvg(obp)}</td>
-  <td class="center">${formatAvg(slg)}</td>
-  <td class="center">${formatAvg(ops)}</td>
-  <td class="center">${s.sb}</td>
-  <td class="center">${s.cs}</td>
-  <td></td>
-  <td></td>
-  <td></td>
-</tr>
-`;
-});
       return rows;
     }
 
@@ -550,6 +488,7 @@ seasons.slice().reverse().forEach(season => {
       background: #800000;
       color: white;
       text-align: center;
+      cursor: pointer;
     }
     td.left { text-align: left; }
     td.center { text-align: center; }
@@ -557,93 +496,88 @@ seasons.slice().reverse().forEach(season => {
     .main-row { cursor: pointer; }
     .main-row:hover td { background: #f0e6e6; }
   </style>
-<script>
-  function toggle(id) {
-    document.querySelectorAll('.detail-' + id).forEach(row => {
-      row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-    });
-  }
-
-  function sortTable(tableId, colIndex, isNumeric) {
-    const table = document.getElementById(tableId);
-    const tbody = table.querySelector('tbody');
-    const allRows = Array.from(tbody.querySelectorAll('tr'));
-
-    const mainRows = allRows.filter(row => row.classList.contains('main-row'));
-
-    const groups = mainRows.map(mainRow => {
-      const playerId = mainRow.getAttribute('data-player-id');
-      const detailRows = allRows.filter(r => r.classList.contains('detail-' + playerId));
-      return { mainRow, detailRows };
-    });
-
-    const currentDir = table.getAttribute('data-sort-dir') || 'desc';
-    const currentCol = table.getAttribute('data-sort-col');
-
-    let newDir = 'asc';
-    if (currentCol == colIndex && currentDir === 'asc') {
-      newDir = 'desc';
+  <script>
+    function toggle(id) {
+      document.querySelectorAll('.detail-' + id).forEach(row => {
+        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+      });
     }
 
-    groups.sort((a, b) => {
-      let aText = a.mainRow.children[colIndex].innerText.trim();
-      let bText = b.mainRow.children[colIndex].innerText.trim();
+    function sortTable(tableId, colIndex, isNumeric) {
+      const table = document.getElementById(tableId);
+      const tbody = table.querySelector('tbody');
+      const allRows = Array.from(tbody.querySelectorAll('tr'));
+      const mainRows = allRows.filter(row => row.classList.contains('main-row'));
 
-      if (isNumeric) {
-        const aNum = parseFloat(aText.replace(/[^0-9.\-]/g, '')) || 0;
-        const bNum = parseFloat(bText.replace(/[^0-9.\-]/g, '')) || 0;
-        return newDir === 'asc' ? aNum - bNum : bNum - aNum;
-      } else {
+      const groups = mainRows.map(mainRow => {
+        const playerId = mainRow.getAttribute('data-player-id');
+        const detailRows = allRows.filter(r => r.classList.contains('detail-' + playerId));
+        return { mainRow, detailRows };
+      });
+
+      const currentDir = table.getAttribute('data-sort-dir') || 'desc';
+      const currentCol = table.getAttribute('data-sort-col');
+      let newDir = 'asc';
+
+      if (currentCol == colIndex && currentDir === 'asc') newDir = 'desc';
+
+      groups.sort((a, b) => {
+        let aText = a.mainRow.children[colIndex].innerText.trim();
+        let bText = b.mainRow.children[colIndex].innerText.trim();
+
+        if (isNumeric) {
+          const aNum = parseFloat(aText.replace(/[^0-9.\\-]/g, '')) || 0;
+          const bNum = parseFloat(bText.replace(/[^0-9.\\-]/g, '')) || 0;
+          return newDir === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+
         return newDir === 'asc'
           ? aText.localeCompare(bText)
           : bText.localeCompare(aText);
-      }
-    });
+      });
 
-    tbody.innerHTML = '';
-    groups.forEach(group => {
-      tbody.appendChild(group.mainRow);
-      group.detailRows.forEach(detail => tbody.appendChild(detail));
-    });
+      tbody.innerHTML = '';
+      groups.forEach(group => {
+        tbody.appendChild(group.mainRow);
+        group.detailRows.forEach(detail => tbody.appendChild(detail));
+      });
 
-    table.setAttribute('data-sort-col', colIndex);
-    table.setAttribute('data-sort-dir', newDir);
-  }
-</script>
-
-
+      table.setAttribute('data-sort-col', colIndex);
+      table.setAttribute('data-sort-dir', newDir);
+    }
+  </script>
 </head>
 <body>
- <h2>Top 10 Batting Average${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-  
+  <h2>Top 10 Batting Average${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+
   <div class="table-wrapper">
     <table id="leaderboardTable">
       <thead>
         <tr>
-  <th onclick="sortTable('leaderboardTable', 0, true)">Rank</th>
-  <th onclick="sortTable('leaderboardTable', 1, false)">First</th>
-  <th onclick="sortTable('leaderboardTable', 2, false)">Last</th>
-  <th onclick="sortTable('leaderboardTable', 3, true)">GP</th>
-  <th onclick="sortTable('leaderboardTable', 4, true)">PA</th>
-  <th onclick="sortTable('leaderboardTable', 5, true)">AB</th>
-  <th onclick="sortTable('leaderboardTable', 6, true)">H</th>
-  <th onclick="sortTable('leaderboardTable', 7, true)">1B</th>
-  <th onclick="sortTable('leaderboardTable', 8, true)">2B</th>
-  <th onclick="sortTable('leaderboardTable', 9, true)">3B</th>
-  <th onclick="sortTable('leaderboardTable', 10, true)">HR</th>
-  <th onclick="sortTable('leaderboardTable', 11, true)">RBI</th>
-  <th onclick="sortTable('leaderboardTable', 12, true)">R</th>
-  <th onclick="sortTable('leaderboardTable', 13, true)">BB</th>
-  <th onclick="sortTable('leaderboardTable', 14, true)">SO</th>
-  <th onclick="sortTable('leaderboardTable', 15, true)">AVG</th>
-  <th onclick="sortTable('leaderboardTable', 16, true)">OBP</th>
-  <th onclick="sortTable('leaderboardTable', 17, true)">SLG</th>
-  <th onclick="sortTable('leaderboardTable', 18, true)">OPS</th>
-  <th onclick="sortTable('leaderboardTable', 19, true)">SB</th>
-  <th onclick="sortTable('leaderboardTable', 20, true)">CS</th>
-  <th onclick="sortTable('leaderboardTable', 21, true)">#S</th>
-  <th onclick="sortTable('leaderboardTable', 22, false)">First Year</th>
-  <th onclick="sortTable('leaderboardTable', 23, false)">Last Year</th>
+          <th onclick="sortTable('leaderboardTable', 0, true)">Rank</th>
+          <th onclick="sortTable('leaderboardTable', 1, false)">First</th>
+          <th onclick="sortTable('leaderboardTable', 2, false)">Last</th>
+          <th onclick="sortTable('leaderboardTable', 3, true)">GP</th>
+          <th onclick="sortTable('leaderboardTable', 4, true)">PA</th>
+          <th onclick="sortTable('leaderboardTable', 5, true)">AB</th>
+          <th onclick="sortTable('leaderboardTable', 6, true)">H</th>
+          <th onclick="sortTable('leaderboardTable', 7, true)">1B</th>
+          <th onclick="sortTable('leaderboardTable', 8, true)">2B</th>
+          <th onclick="sortTable('leaderboardTable', 9, true)">3B</th>
+          <th onclick="sortTable('leaderboardTable', 10, true)">HR</th>
+          <th onclick="sortTable('leaderboardTable', 11, true)">RBI</th>
+          <th onclick="sortTable('leaderboardTable', 12, true)">R</th>
+          <th onclick="sortTable('leaderboardTable', 13, true)">BB</th>
+          <th onclick="sortTable('leaderboardTable', 14, true)">SO</th>
+          <th onclick="sortTable('leaderboardTable', 15, true)">AVG</th>
+          <th onclick="sortTable('leaderboardTable', 16, true)">OBP</th>
+          <th onclick="sortTable('leaderboardTable', 17, true)">SLG</th>
+          <th onclick="sortTable('leaderboardTable', 18, true)">OPS</th>
+          <th onclick="sortTable('leaderboardTable', 19, true)">SB</th>
+          <th onclick="sortTable('leaderboardTable', 20, true)">CS</th>
+          <th onclick="sortTable('leaderboardTable', 21, true)">#S</th>
+          <th onclick="sortTable('leaderboardTable', 22, false)">First Year</th>
+          <th onclick="sortTable('leaderboardTable', 23, false)">Last Year</th>
         </tr>
       </thead>
       <tbody>
@@ -661,5 +595,4 @@ seasons.slice().reverse().forEach(season => {
 });
 
 app.listen(3001, () => console.log('Server running'));
-
 
