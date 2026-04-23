@@ -88,7 +88,7 @@ app.get('/leaderboard/games', async (req, res) => {
         });
 
         rows += `
-<tr class="main-row" onclick="toggle('${player.player_id}')">
+<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
   <td class="center">${index + 1}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
@@ -102,7 +102,7 @@ app.get('/leaderboard/games', async (req, res) => {
 
         seasons.slice().reverse().forEach(season => {
           rows += `
-<tr class="detail-${player.player_id}" style="display:none;">
+<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
   <td></td>
   <td colspan="2">${season}</td>
   <td></td>
@@ -170,19 +170,66 @@ app.get('/leaderboard/games', async (req, res) => {
     }
   </style>
 
-  <script>
-    function toggle(id) {
-      document.querySelectorAll('.detail-' + id).forEach(row => {
-        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-      });
+<script>
+  function toggle(id) {
+    document.querySelectorAll('.detail-' + id).forEach(row => {
+      row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    });
+  }
+
+  function sortTable(tableId, colIndex, isNumeric = false) {
+    const table = document.getElementById(tableId);
+    const tbody = table.querySelector('tbody');
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+
+    const mainRows = allRows.filter(row => row.classList.contains('main-row'));
+
+    const groups = mainRows.map(mainRow => {
+      const playerId = mainRow.getAttribute('data-player-id');
+      const detailRows = allRows.filter(r => r.classList.contains(`detail-${playerId}`));
+      return { mainRow, detailRows };
+    });
+
+    const currentDir = table.getAttribute('data-sort-dir') || 'desc';
+    const currentCol = table.getAttribute('data-sort-col');
+
+    let newDir = 'asc';
+    if (currentCol == colIndex && currentDir === 'asc') {
+      newDir = 'desc';
     }
-  </script>
+
+    groups.sort((a, b) => {
+      let aText = a.mainRow.children[colIndex].innerText.trim();
+      let bText = b.mainRow.children[colIndex].innerText.trim();
+
+      if (isNumeric) {
+        const aNum = parseFloat(aText.replace(/[^0-9.\-]/g, '')) || 0;
+        const bNum = parseFloat(bText.replace(/[^0-9.\-]/g, '')) || 0;
+        return newDir === 'asc' ? aNum - bNum : bNum - aNum;
+      } else {
+        return newDir === 'asc'
+          ? aText.localeCompare(bText)
+          : bText.localeCompare(aText);
+      }
+    });
+
+    tbody.innerHTML = '';
+    groups.forEach(group => {
+      tbody.appendChild(group.mainRow);
+      group.detailRows.forEach(detail => tbody.appendChild(detail));
+    });
+
+    table.setAttribute('data-sort-col', colIndex);
+    table.setAttribute('data-sort-dir', newDir);
+  }
+</script>
+
 </head>
 <body>
   <h2>Top 10 Games Played${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
   <div class="table-wrapper">
-    <table>
+    <table id="leaderboardTable">
       <thead>
         <tr>
           <th>Rank</th>
@@ -413,7 +460,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
         const seasons = Object.keys(player.seasons).sort();
 
         rows += `
-<tr class="main-row" onclick="toggle('${player.player_id}')">
+<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
   <td class="center">${index + 1}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
@@ -449,7 +496,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
           const ops = obp + slg;
 
           rows += `
-<tr class="detail-${player.player_id}" style="display:none;">
+<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
   <td></td>
   <td colspan="2">${season}</td>
   <td class="center">${s.gp}</td>
@@ -513,44 +560,94 @@ app.get('/leaderboard/hitting', async (req, res) => {
     .main-row:hover td { background: #f0e6e6; }
   </style>
   <script>
-    function toggle(id) {
-      document.querySelectorAll('.detail-' + id).forEach(row => {
-        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-      });
+  function toggle(id) {
+    document.querySelectorAll('.detail-' + id).forEach(row => {
+      row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+    });
+  }
+
+  function sortTable(tableId, colIndex, isNumeric = false) {
+    const table = document.getElementById(tableId);
+    const tbody = table.querySelector('tbody');
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+
+    const mainRows = allRows.filter(row => row.classList.contains('main-row'));
+
+    const groups = mainRows.map(mainRow => {
+      const playerId = mainRow.getAttribute('data-player-id');
+      const detailRows = allRows.filter(r => r.classList.contains(`detail-${playerId}`));
+      return { mainRow, detailRows };
+    });
+
+    const currentDir = table.getAttribute('data-sort-dir') || 'desc';
+    const currentCol = table.getAttribute('data-sort-col');
+
+    let newDir = 'asc';
+    if (currentCol == colIndex && currentDir === 'asc') {
+      newDir = 'desc';
     }
-  </script>
+
+    groups.sort((a, b) => {
+      let aText = a.mainRow.children[colIndex].innerText.trim();
+      let bText = b.mainRow.children[colIndex].innerText.trim();
+
+      if (isNumeric) {
+        const aNum = parseFloat(aText.replace(/[^0-9.\-]/g, '')) || 0;
+        const bNum = parseFloat(bText.replace(/[^0-9.\-]/g, '')) || 0;
+        return newDir === 'asc' ? aNum - bNum : bNum - aNum;
+      } else {
+        return newDir === 'asc'
+          ? aText.localeCompare(bText)
+          : bText.localeCompare(aText);
+      }
+    });
+
+    tbody.innerHTML = '';
+    groups.forEach(group => {
+      tbody.appendChild(group.mainRow);
+      group.detailRows.forEach(detail => tbody.appendChild(detail));
+    });
+
+    table.setAttribute('data-sort-col', colIndex);
+    table.setAttribute('data-sort-dir', newDir);
+  }
+</script>
+
 </head>
 <body>
  <h2>Top 10 Batting Average${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
   
   <div class="table-wrapper">
-    <table>
+    <table id="leaderboardTable">
       <thead>
         <tr>
-          <th>Rank</th>
-          <th>First</th>
-          <th>Last</th>
-          <th>GP</th>
-          <th>PA</th>
-          <th>AB</th>
-          <th>H</th>
-          <th>1B</th>
-          <th>2B</th>
-          <th>3B</th>
-          <th>HR</th>
-          <th>RBI</th>
-          <th>R</th>
-          <th>BB</th>
-          <th>SO</th>
-          <th>AVG</th>
-          <th>OBP</th>
-          <th>SLG</th>
-          <th>OPS</th>
-          <th>SB</th>
-          <th>CS</th>
-          <th># Seasons</th>
-          <th>First Year</th>
-          <th>Last Year</th>
+          <tr>
+  <th onclick="sortTable('leaderboardTable', 0, true)">Rank</th>
+  <th onclick="sortTable('leaderboardTable', 1, false)">First</th>
+  <th onclick="sortTable('leaderboardTable', 2, false)">Last</th>
+  <th onclick="sortTable('leaderboardTable', 3, true)">GP</th>
+  <th onclick="sortTable('leaderboardTable', 4, true)">PA</th>
+  <th onclick="sortTable('leaderboardTable', 5, true)">AB</th>
+  <th onclick="sortTable('leaderboardTable', 6, true)">H</th>
+  <th onclick="sortTable('leaderboardTable', 7, true)">1B</th>
+  <th onclick="sortTable('leaderboardTable', 8, true)">2B</th>
+  <th onclick="sortTable('leaderboardTable', 9, true)">3B</th>
+  <th onclick="sortTable('leaderboardTable', 10, true)">HR</th>
+  <th onclick="sortTable('leaderboardTable', 11, true)">RBI</th>
+  <th onclick="sortTable('leaderboardTable', 12, true)">R</th>
+  <th onclick="sortTable('leaderboardTable', 13, true)">BB</th>
+  <th onclick="sortTable('leaderboardTable', 14, true)">SO</th>
+  <th onclick="sortTable('leaderboardTable', 15, true)">AVG</th>
+  <th onclick="sortTable('leaderboardTable', 16, true)">OBP</th>
+  <th onclick="sortTable('leaderboardTable', 17, true)">SLG</th>
+  <th onclick="sortTable('leaderboardTable', 18, true)">OPS</th>
+  <th onclick="sortTable('leaderboardTable', 19, true)">SB</th>
+  <th onclick="sortTable('leaderboardTable', 20, true)">CS</th>
+  <th onclick="sortTable('leaderboardTable', 21, true)">#S</th>
+  <th onclick="sortTable('leaderboardTable', 22, false)">First Year</th>
+  <th onclick="sortTable('leaderboardTable', 23, false)">Last Year</th>
+</tr>
+
         </tr>
       </thead>
       <tbody>
