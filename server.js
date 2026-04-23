@@ -55,7 +55,7 @@ app.get('/leaderboard/games', async (req, res) => {
         };
       }
 
-      const s = p.season_id || 'Unknown';
+     const s = player.seasons[season];
       const g = p.grade || 'Other';
       const gp = Number(p.gp) || 0;
 
@@ -92,7 +92,7 @@ rows += `
   <td></td>
   <td colspan="2">${season}</td>
   <td></td>
-  ${grades.map(g => `<td class="center">${player.seasons[season][g] || ''}</td>`).join('')}
+  ${grades.map(g => `<td class="center">${player.seasons[season]?.[g] || ''}</td>`).join('')}
   <td></td>
   <td></td>
   <td></td>
@@ -102,11 +102,11 @@ rows += `
 
         seasons.slice().reverse().forEach(season => {
           rows += `
-<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
+<tr class="detail-${player.player_id}" style="display:none;">
   <td></td>
   <td colspan="2">${season}</td>
   <td></td>
-  ${grades.map(g => `<td class="center">${player.seasons[season][g] || ''}</td>`).join('')}
+ ${grades.map(g => `<td class="center">${player.seasons[season]?.[g] || ''}</td>`).join('')}
   <td></td>
   <td></td>
   <td></td>
@@ -370,7 +370,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
       playersMap[id].sb += sb;
       playersMap[id].cs += cs;
 
-      const s = p.season_id || 'Unknown';
+   const s = player.seasons[season];
 
       if (!playersMap[id].seasons[s]) {
         playersMap[id].seasons[s] = {
@@ -488,15 +488,15 @@ app.get('/leaderboard/hitting', async (req, res) => {
 `;
 
 
-        seasons.slice().reverse().forEach(season => {
-          const s = player.seasons[season];
-          const avg = s.ab > 0 ? s.h / s.ab : 0;
-          const obp = calcObp(s.h, s.bb, s.hbp, s.ab, s.sf);
-          const slg = calcSlg(s.single, s.double, s.triple, s.hr, s.ab);
-          const ops = obp + slg;
+seasons.slice().reverse().forEach(season => {
+ const s = player.seasons[season];
+  const avg = s.ab > 0 ? s.h / s.ab : 0;
+  const obp = calcObp(s.h, s.bb, s.hbp, s.ab, s.sf);
+  const slg = calcSlg(s.single, s.double, s.triple, s.hr, s.ab);
+  const ops = obp + slg;
 
-          rows += `
-<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
+  rows += `
+<tr class="detail-${player.player_id}" style="display:none;">
   <td></td>
   <td colspan="2">${season}</td>
   <td class="center">${s.gp}</td>
@@ -522,9 +522,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
   <td></td>
 </tr>
 `;
-        });
-      });
-
+});
       return rows;
     }
 
