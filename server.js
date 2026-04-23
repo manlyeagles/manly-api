@@ -521,9 +521,9 @@ app.get('/leaderboard/hitting', async (req, res) => {
   </script>
 </head>
 <body>
-  <h2>Top 10 Batting Average${season ? ` - ${season}` : ''}${grade ? ` (${grade})`}</h2>
+ <h2>Top 10 Batting Average${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
   
-    <div class="table-wrapper">
+  <div class="table-wrapper">
     <table>
       <thead>
         <tr>
