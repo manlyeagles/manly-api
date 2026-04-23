@@ -177,7 +177,7 @@ app.get('/leaderboard/games', async (req, res) => {
     });
   }
 
-  function sortTable(tableId, colIndex, isNumeric = false) {
+  function sortTable(tableId, colIndex, isNumeric) {
     const table = document.getElementById(tableId);
     const tbody = table.querySelector('tbody');
     const allRows = Array.from(tbody.querySelectorAll('tr'));
@@ -186,7 +186,7 @@ app.get('/leaderboard/games', async (req, res) => {
 
     const groups = mainRows.map(mainRow => {
       const playerId = mainRow.getAttribute('data-player-id');
-      const detailRows = allRows.filter(r => r.classList.contains(`detail-${playerId}`));
+      const detailRows = allRows.filter(r => r.classList.contains('detail-' + playerId));
       return { mainRow, detailRows };
     });
 
@@ -559,14 +559,14 @@ app.get('/leaderboard/hitting', async (req, res) => {
     .main-row { cursor: pointer; }
     .main-row:hover td { background: #f0e6e6; }
   </style>
-  <script>
+<script>
   function toggle(id) {
     document.querySelectorAll('.detail-' + id).forEach(row => {
       row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
     });
   }
 
-  function sortTable(tableId, colIndex, isNumeric = false) {
+  function sortTable(tableId, colIndex, isNumeric) {
     const table = document.getElementById(tableId);
     const tbody = table.querySelector('tbody');
     const allRows = Array.from(tbody.querySelectorAll('tr'));
@@ -575,7 +575,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
 
     const groups = mainRows.map(mainRow => {
       const playerId = mainRow.getAttribute('data-player-id');
-      const detailRows = allRows.filter(r => r.classList.contains(`detail-${playerId}`));
+      const detailRows = allRows.filter(r => r.classList.contains('detail-' + playerId));
       return { mainRow, detailRows };
     });
 
@@ -612,6 +612,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
     table.setAttribute('data-sort-dir', newDir);
   }
 </script>
+
 
 </head>
 <body>
