@@ -87,18 +87,18 @@ app.get('/leaderboard/games', async (req, res) => {
           });
         });
 
-        rows += `
-<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
-  <td class="center">${index + 1}</td>
-  <td class="left">${player.first_name}</td>
-  <td class="left">${player.last_name}</td>
-  <td class="center"><b>${player.total_games}</b></td>
-  ${grades.map(g => `<td class="center"><b>${gradeTotals[g] || ''}</b></td>`).join('')}
-  <td class="center">${seasons.length}</td>
-  <td class="center">${seasons[0] || ''}</td>
-  <td class="center">${seasons[seasons.length - 1] || ''}</td>
+rows += `
+<tr class="detail-${player.player_id}" style="display:none;">
+  <td></td>
+  <td colspan="2">${season}</td>
+  <td></td>
+  ${grades.map(g => `<td class="center">${player.seasons[season][g] || ''}</td>`).join('')}
+  <td></td>
+  <td></td>
+  <td></td>
 </tr>
 `;
+
 
         seasons.slice().reverse().forEach(season => {
           rows += `
@@ -459,34 +459,34 @@ app.get('/leaderboard/hitting', async (req, res) => {
       players.forEach((player, index) => {
         const seasons = Object.keys(player.seasons).sort();
 
-        rows += `
-<tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
-  <td class="center">${index + 1}</td>
-  <td class="left">${player.first_name}</td>
-  <td class="left">${player.last_name}</td>
-  <td class="center">${player.gp}</td>
-  <td class="center">${player.pa}</td>
-  <td class="center">${player.ab}</td>
-  <td class="center">${player.h}</td>
-  <td class="center">${player.single}</td>
-  <td class="center">${player.double}</td>
-  <td class="center">${player.triple}</td>
-  <td class="center">${player.hr}</td>
-  <td class="center">${player.rbi}</td>
-  <td class="center">${player.r}</td>
-  <td class="center">${player.bb}</td>
-  <td class="center">${player.so}</td>
-  <td class="center"><b>${formatAvg(player.avg)}</b></td>
-  <td class="center">${formatAvg(player.obp)}</td>
-  <td class="center">${formatAvg(player.slg)}</td>
-  <td class="center">${formatAvg(player.ops)}</td>
-  <td class="center">${player.sb}</td>
-  <td class="center">${player.cs}</td>
-  <td class="center">${seasons.length}</td>
-  <td class="center">${seasons[0] || ''}</td>
-  <td class="center">${seasons[seasons.length - 1] || ''}</td>
+       rows += `
+<tr class="detail-${player.player_id}" style="display:none;">
+  <td></td>
+  <td colspan="2">${season}</td>
+  <td class="center">${s.gp}</td>
+  <td class="center">${s.pa}</td>
+  <td class="center">${s.ab}</td>
+  <td class="center">${s.h}</td>
+  <td class="center">${s.single}</td>
+  <td class="center">${s.double}</td>
+  <td class="center">${s.triple}</td>
+  <td class="center">${s.hr}</td>
+  <td class="center">${s.rbi}</td>
+  <td class="center">${s.r}</td>
+  <td class="center">${s.bb}</td>
+  <td class="center">${s.so}</td>
+  <td class="center">${formatAvg(avg)}</td>
+  <td class="center">${formatAvg(obp)}</td>
+  <td class="center">${formatAvg(slg)}</td>
+  <td class="center">${formatAvg(ops)}</td>
+  <td class="center">${s.sb}</td>
+  <td class="center">${s.cs}</td>
+  <td></td>
+  <td></td>
+  <td></td>
 </tr>
 `;
+
 
         seasons.slice().reverse().forEach(season => {
           const s = player.seasons[season];
@@ -622,7 +622,6 @@ app.get('/leaderboard/hitting', async (req, res) => {
     <table id="leaderboardTable">
       <thead>
         <tr>
-          <tr>
   <th onclick="sortTable('leaderboardTable', 0, true)">Rank</th>
   <th onclick="sortTable('leaderboardTable', 1, false)">First</th>
   <th onclick="sortTable('leaderboardTable', 2, false)">Last</th>
@@ -647,8 +646,6 @@ app.get('/leaderboard/hitting', async (req, res) => {
   <th onclick="sortTable('leaderboardTable', 21, true)">#S</th>
   <th onclick="sortTable('leaderboardTable', 22, false)">First Year</th>
   <th onclick="sortTable('leaderboardTable', 23, false)">Last Year</th>
-</tr>
-
         </tr>
       </thead>
       <tbody>
