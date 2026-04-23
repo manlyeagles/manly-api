@@ -5,6 +5,73 @@ const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 async function safeFetchJson(url) {
+function getFilters(req, defaultStatType) {
+  return {
+    season: req.query.season || '',
+    grade: req.query.grade || '',
+    q: (req.query.q || '').trim().toLowerCase(),
+    top: Math.min(Math.max(parseInt(req.query.top || '10', 10), 1), 100),
+    statType: req.query.statType || defaultStatType
+  };
+}
+
+function filterBySearch(players, q) {
+  if (!q) return players;
+
+  return players.filter(p => {
+    const name = `${p.first_name} ${p.last_name}`.toLowerCase();
+    return name.includes(q);
+  });
+}
+
+function buildControls({ season, grade, q, top, statType }) {
+  return `
+<form class="filters" method="get">
+  <input 
+    type="text" 
+    name="q" 
+    placeholder="Search player..." 
+    value="${q || ''}"
+  />
+
+  <select name="grade">
+    <option value="">All Grades</option>
+    ${['First Grade', 'Second Grade', 'Third Grade', 'Under 18', 'Womens', 'Other'].map(g => `
+      <option value="${g}" ${grade === g ? 'selected' : ''}>${g}</option>
+    `).join('')}
+  </select>
+
+  <input 
+    type="text" 
+    name="season" 
+    placeholder="Season e.g. 2024/25" 
+    value="${season || ''}"
+  />
+
+  <select name="statType" onchange="changeStatType(this.value)">
+    <option value="games" ${statType === 'games' ? 'selected' : ''}>Games Played</option>
+    <option value="hitting" ${statType === 'hitting' ? 'selected' : ''}>Hitting</option>
+  </select>
+
+  <select name="top">
+    ${[10, 25, 50, 100].map(n => `
+      <option value="${n}" ${Number(top) === n ? 'selected' : ''}>Top ${n}</option>
+    `).join('')}
+  </select>
+
+  <button type="submit">Apply</button>
+</form>
+
+<script>
+  function changeStatType(type) {
+    const form = document.querySelector('.filters');
+    const params = new URLSearchParams(new FormData(form));
+    params.set('statType', type);
+    window.location.href = '/leaderboard/' + type + '?' + params.toString();
+  }
+</script>
+`;
+}
   const res = await fetch(url, {
     headers: {
       apikey: SUPABASE_KEY,
@@ -23,8 +90,7 @@ async function safeFetchJson(url) {
 
 app.get('/leaderboard/games', async (req, res) => {
   try {
-    const season = req.query.season || '';
-    const grade = req.query.grade || '';
+  const { season, grade, q, top, statType } = getFilters(req, 'games');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
 
@@ -69,7 +135,7 @@ app.get('/leaderboard/games', async (req, res) => {
 
     const players = Object.values(playersMap)
       .sort((a, b) => b.total_games - a.total_games)
-      .slice(0, 10);
+     const players = filterBySearch(Object.values(playersMap), q)
 
     function buildGamesTable(players) {
       let rows = '';
@@ -239,8 +305,7 @@ app.get('/leaderboard/games', async (req, res) => {
 
 app.get('/leaderboard/hitting', async (req, res) => {
   try {
-    const season = req.query.season || '';
-    const grade = req.query.grade || '';
+ const { season, grade, q, top, statType } = getFilters(req, 'hitting');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name)`;
 
@@ -387,7 +452,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
       })
       .filter(p => p.ab >= 10)
       .sort((a, b) => b.avg - a.avg)
-      .slice(0, 10);
+      const players = filterBySearch(Object.values(playersMap), q)
 
     function buildHittingTable(players) {
       let rows = '';
