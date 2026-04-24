@@ -1213,6 +1213,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+
 app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   try {
     const { season, grade, top } = getFilters(req, 'pitching-by-grade');
@@ -1256,6 +1257,14 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
       return Number(value || 0).toFixed(decimals);
     }
 
+    function formatIP(ip) {
+      if (!ip) return '0.0';
+      const outs = Math.round(Number(ip) * 3);
+      const whole = Math.floor(outs / 3);
+      const remainder = outs % 3;
+      return `${whole}.${remainder}`;
+    }
+
     const rowsData = Object.values(rowsMap)
       .map(p => {
         const era = p.ip > 0 ? (p.er * 9) / p.ip : 0;
@@ -1270,7 +1279,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
 <tr>
   <td class="left"><b>${p.grade}</b></td>
   <td class="center">${p.gs}</td>
- <td class="center">${formatIP(p.ip)}</td>
+  <td class="center">${formatIP(p.ip)}</td>
   <td class="center">${p.w}</td>
   <td class="center">${p.l}</td>
   <td class="center">${p.sv}</td>
@@ -1294,8 +1303,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   <title>All Time Pitching By Grade</title>
   <style>
     html, body { margin:0; font-family: Arial, sans-serif; }
-    body { padding: 20px; }
-    h2 { margin-bottom: 12px; }
+    body { padding:20px; }
     .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
     .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
     .filters button { background:#800000; color:white; border:none; cursor:pointer; }
@@ -1309,29 +1317,15 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   </style>
 </head>
 <body>
-  <h2>All TIme Club Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-
+  <h2>All Time Club Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
   ${buildControls({ season, grade, q: '', top })}
-
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>Grade</th>
-          <th>GS</th>
-          <th>IP</th>
-          <th>W</th>
-          <th>L</th>
-          <th>SV</th>
-          <th>H</th>
-          <th>R</th>
-          <th>ER</th>
-          <th>BB</th>
-          <th>SO</th>
-          <th>HR</th>
-          <th>ERA</th>
-          <th>WHIP</th>
-          <th>K/9</th>
+          <th>Grade</th><th>GS</th><th>IP</th><th>W</th><th>L</th><th>SV</th>
+          <th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>HR</th>
+          <th>ERA</th><th>WHIP</th><th>K/9</th>
         </tr>
       </thead>
       <tbody>${tableRows}</tbody>
@@ -1346,11 +1340,12 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   }
 });
 
+
 app.get('/leaderboard/fielding-by-grade', async (req, res) => {
   try {
     const { season, grade, top } = getFilters(req, 'fielding-by-grade');
 
-   let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=player_id,season_id,grade,gp,tc,a,po,fpct,e,dp,tp,inn,pb,sb,att,cs,cspct,pik`;
+    let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=season_id,grade,tc,a,po,e,dp,tp,inn,pb,sb,att,cs,pik`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -1365,18 +1360,15 @@ app.get('/leaderboard/fielding-by-grade', async (req, res) => {
       const g = allowedGrades.includes(p.grade) ? p.grade : 'Other';
 
       if (!rowsMap[g]) {
-       rowsMap[g] = {
-  grade: g,
-  gp: 0,
-  tc: 0, a: 0, po: 0, e: 0,
-
+        rowsMap[g] = {
+          grade: g,
+          tc: 0, a: 0, po: 0, e: 0,
           dp: 0, tp: 0, inn: 0,
           pb: 0, sb: 0, att: 0, cs: 0, pik: 0
         };
       }
 
-rowsMap[g].gp += Number(p.gp) || 0;    
-rowsMap[g].tc += Number(p.tc) || 0;
+      rowsMap[g].tc += Number(p.tc) || 0;
       rowsMap[g].a += Number(p.a) || 0;
       rowsMap[g].po += Number(p.po) || 0;
       rowsMap[g].e += Number(p.e) || 0;
@@ -1391,7 +1383,9 @@ rowsMap[g].tc += Number(p.tc) || 0;
     });
 
     function f(v) {
-      return v ? v.toFixed(3).replace(/^0/, '') : '.000';
+      if (!v || isNaN(v)) return '.000';
+      const rounded = Math.round(v * 1000) / 1000;
+      return rounded.toFixed(3).replace(/^0/, '');
     }
 
     const rowsData = Object.values(rowsMap)
@@ -1431,13 +1425,12 @@ rowsMap[g].tc += Number(p.tc) || 0;
   <title>All Time Fielding By Grade</title>
   <style>
     html, body { margin:0; font-family: Arial, sans-serif; }
-    body { padding: 20px; }
-    h2 { margin-bottom: 12px; }
+    body { padding:20px; }
     .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
     .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
     .filters button { background:#800000; color:white; border:none; cursor:pointer; }
     .table-wrapper { overflow-x:auto; }
-    table { border-collapse:collapse; width:100%; min-width:1200px; }
+    table { border-collapse:collapse; width:100%; min-width:1400px; }
     th, td { border:1px solid #ddd; padding:6px 8px; font-size:12px; white-space:nowrap; }
     th { background:#800000; color:white; text-align:center; }
     td.left { text-align:left; }
@@ -1447,28 +1440,14 @@ rowsMap[g].tc += Number(p.tc) || 0;
 </head>
 <body>
   <h2>All Time Club Fielding By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-
   ${buildControls({ season, grade, q: '', top })}
-
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>Grade</th>
-          <th>TC</th>
-          <th>PO</th>
-          <th>A</th>
-          <th>E</th>
-          <th>FPCT</th>
-          <th>DP</th>
-          <th>TP</th>
-          <th>INN</th>
-          <th>PB</th>
-          <th>SB</th>
-          <th>CS</th>
-          <th>ATT</th>
-          <th>CSPCT</th>
-          <th>PIK</th>
+          <th>Grade</th><th>TC</th><th>PO</th><th>A</th><th>E</th><th>FPCT</th>
+          <th>DP</th><th>TP</th><th>INN</th><th>PB</th><th>SB</th>
+          <th>CS</th><th>ATT</th><th>CSPCT</th><th>PIK</th>
         </tr>
       </thead>
       <tbody>${tableRows}</tbody>
@@ -1482,6 +1461,7 @@ rowsMap[g].tc += Number(p.tc) || 0;
     res.status(500).send(err.message);
   }
 });
+
 
 app.listen(3001, () => console.log('Server running'));
 
