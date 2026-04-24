@@ -66,7 +66,7 @@ function buildControls({ season, grade, q, top, }) {
     `).join('')}
   </select>
 
-  <button type="submit">Apply</button>
+  <button type="submit">Swing</button>
 </form>
 
 `;
@@ -903,6 +903,192 @@ last_name: playerLookup[id]?.last_name || '',
       <tbody>
         ${rows}
       </tbody>
+    </table>
+  </div>
+</body>
+</html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+app.get('/leaderboard/hitting-by-grade', async (req, res) => {
+  try {
+    const { season, grade, q, top } = getFilters(req, 'hitting-by-grade');
+
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
+
+    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
+
+    const json = await safeFetchJson(url);
+    const data = Array.isArray(json) ? json : json.data;
+
+    const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
+    const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name,jersey_number&player_id=in.(${playerIds.join(',')})`;
+
+    const playersJson = await safeFetchJson(playersUrl);
+    const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
+
+    const playerLookup = {};
+    playersData.forEach(p => {
+      playerLookup[p.player_id] = p;
+    });
+
+    const rowsMap = {};
+
+    data.forEach(p => {
+      const id = Number(p.player_id);
+      if (!id) return;
+
+      const key = `${id}-${p.grade}`;
+
+      if (!rowsMap[key]) {
+        rowsMap[key] = {
+          player_id: id,
+          jersey_number: playerLookup[id]?.jersey_number || '',
+          first_name: playerLookup[id]?.first_name || '',
+          last_name: playerLookup[id]?.last_name || '',
+          grade: p.grade || 'Other',
+          gp: 0,
+          pa: 0,
+          ab: 0,
+          h: 0,
+          single: 0,
+          double: 0,
+          triple: 0,
+          hr: 0,
+          rbi: 0,
+          r: 0,
+          bb: 0,
+          so: 0,
+          hbp: 0,
+          sf: 0
+        };
+      }
+
+      rowsMap[key].gp += Number(p.gp) || 0;
+      rowsMap[key].pa += Number(p.pa) || 0;
+      rowsMap[key].ab += Number(p.ab) || 0;
+      rowsMap[key].h += Number(p.h) || 0;
+      rowsMap[key].single += Number(p["1B"]) || 0;
+      rowsMap[key].double += Number(p["2B"]) || 0;
+      rowsMap[key].triple += Number(p["3B"]) || 0;
+      rowsMap[key].hr += Number(p.hr) || 0;
+      rowsMap[key].rbi += Number(p.rbi) || 0;
+      rowsMap[key].r += Number(p.r) || 0;
+      rowsMap[key].bb += Number(p.bb) || 0;
+      rowsMap[key].so += Number(p.so) || 0;
+      rowsMap[key].hbp += Number(p.hbp) || 0;
+      rowsMap[key].sf += Number(p.sf) || 0;
+    });
+
+    function formatAvg(value) {
+      return value ? value.toFixed(3).replace(/^0/, '') : '.000';
+    }
+
+    function calcObp(h, bb, hbp, ab, sf) {
+      const denom = ab + bb + hbp + sf;
+      return denom > 0 ? (h + bb + hbp) / denom : 0;
+    }
+
+    function calcSlg(single, double, triple, hr, ab) {
+      const tb = single + double * 2 + triple * 3 + hr * 4;
+      return ab > 0 ? tb / ab : 0;
+    }
+
+    const rowsData = filterBySearch(Object.values(rowsMap), q)
+      .map(p => {
+        const avg = p.ab > 0 ? p.h / p.ab : 0;
+        const obp = calcObp(p.h, p.bb, p.hbp, p.ab, p.sf);
+        const slg = calcSlg(p.single, p.double, p.triple, p.hr, p.ab);
+        const ops = obp + slg;
+        return { ...p, avg, obp, slg, ops };
+      })
+      .filter(p => p.ab >= 10)
+      .sort((a, b) => b.avg - a.avg)
+      .slice(0, top);
+
+    const tableRows = rowsData.map(p => `
+<tr>
+  <td class="center">${p.jersey_number}</td>
+  <td class="left">${p.first_name}</td>
+  <td class="left">${p.last_name}</td>
+  <td class="center">${p.grade}</td>
+  <td class="center">${p.gp}</td>
+  <td class="center">${p.pa}</td>
+  <td class="center">${p.ab}</td>
+  <td class="center">${p.h}</td>
+  <td class="center">${p.single}</td>
+  <td class="center">${p.double}</td>
+  <td class="center">${p.triple}</td>
+  <td class="center">${p.hr}</td>
+  <td class="center">${p.rbi}</td>
+  <td class="center">${p.r}</td>
+  <td class="center">${p.bb}</td>
+  <td class="center">${p.so}</td>
+  <td class="center"><b>${formatAvg(p.avg)}</b></td>
+  <td class="center">${formatAvg(p.obp)}</td>
+  <td class="center">${formatAvg(p.slg)}</td>
+  <td class="center">${formatAvg(p.ops)}</td>
+</tr>
+`).join('');
+
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Hitting By Grade</title>
+  <style>
+    html, body { margin:0; font-family: Arial, sans-serif; }
+    body { padding: 20px; }
+    h2 { margin-bottom: 12px; }
+    .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
+    .filters button { background:#800000; color:white; border:none; cursor:pointer; }
+    .table-wrapper { overflow-x:auto; }
+    table { border-collapse:collapse; width:100%; min-width:1500px; }
+    th, td { border:1px solid #ddd; padding:6px 8px; font-size:12px; white-space:nowrap; }
+    th { background:#800000; color:white; text-align:center; }
+    td.left { text-align:left; }
+    td.center { text-align:center; }
+    tbody tr:nth-child(even) td { background:#f7f7f7; }
+  </style>
+</head>
+<body>
+  <h2>Hitting Stats By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+
+  ${buildControls({ season, grade, q, top })}
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>First</th>
+          <th>Last</th>
+          <th>Grade</th>
+          <th>GP</th>
+          <th>PA</th>
+          <th>AB</th>
+          <th>H</th>
+          <th>1B</th>
+          <th>2B</th>
+          <th>3B</th>
+          <th>HR</th>
+          <th>RBI</th>
+          <th>R</th>
+          <th>BB</th>
+          <th>SO</th>
+          <th>AVG</th>
+          <th>OBP</th>
+          <th>SLG</th>
+          <th>OPS</th>
+        </tr>
+      </thead>
+      <tbody>${tableRows}</tbody>
     </table>
   </div>
 </body>
