@@ -4,6 +4,7 @@ const app = express();
 const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
+// ✅ FIXED FUNCTION
 async function safeFetchJson(url) {
   const res = await fetch(url, {
     headers: {
@@ -11,6 +12,17 @@ async function safeFetchJson(url) {
       Authorization: `Bearer ${SUPABASE_KEY}`
     }
   });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || 'Supabase request failed');
+  }
+
+  return json;
+}
+
+// ✅ YOUR HELPERS
 function getFilters(req, defaultStatType) {
   return {
     season: req.query.season || '',
@@ -29,6 +41,7 @@ function filterBySearch(players, q) {
     return name.includes(q);
   });
 }
+
 app.get('/leaderboard/games', async (req, res) => {
   try {
    const { season, grade, q, top, statType } = getFilters(req, 'games');
