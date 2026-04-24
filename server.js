@@ -1099,6 +1099,38 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+const rowsMap = {};
+
+data.forEach(p => {
+  const grade = p.grade || 'Other';
+
+  if (!['First Grade','Second Grade','Third Grade','Under 18','Womens','Other'].includes(grade)) return;
+
+  if (!rowsMap[grade]) {
+    rowsMap[grade] = {
+      grade,
+      gp: 0, pa: 0, ab: 0, h: 0,
+      single: 0, double: 0, triple: 0, hr: 0,
+      rbi: 0, r: 0, bb: 0, so: 0, hbp: 0, sf: 0
+    };
+  }
+
+  rowsMap[grade].gp += Number(p.gp) || 0;
+  rowsMap[grade].pa += Number(p.pa) || 0;
+  rowsMap[grade].ab += Number(p.ab) || 0;
+  rowsMap[grade].h += Number(p.h) || 0;
+  rowsMap[grade].single += Number(p["1B"]) || 0;
+  rowsMap[grade].double += Number(p["2B"]) || 0;
+  rowsMap[grade].triple += Number(p["3B"]) || 0;
+  rowsMap[grade].hr += Number(p.hr) || 0;
+  rowsMap[grade].rbi += Number(p.rbi) || 0;
+  rowsMap[grade].r += Number(p.r) || 0;
+  rowsMap[grade].bb += Number(p.bb) || 0;
+  rowsMap[grade].so += Number(p.so) || 0;
+  rowsMap[grade].hbp += Number(p.hbp) || 0;
+  rowsMap[grade].sf += Number(p.sf) || 0;
+});
+
 
 app.listen(3001, () => console.log('Server running'));
 
