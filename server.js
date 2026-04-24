@@ -11,6 +11,16 @@ async function safeFetchJson(url) {
       Authorization: `Bearer ${SUPABASE_KEY}`
     }
   });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    throw new Error(json.message || 'Supabase request failed');
+  }
+
+  return json;
+}
+
 function getFilters(req, defaultStatType) {
   return {
     season: req.query.season || '',
@@ -33,12 +43,7 @@ function filterBySearch(players, q) {
 function buildControls({ season, grade, q, top, statType }) {
   return `
 <form class="filters" method="get">
-  <input 
-    type="text" 
-    name="q" 
-    placeholder="Search player..." 
-    value="${q || ''}"
-  />
+  <input type="text" name="q" placeholder="Search player..." value="${q || ''}" />
 
   <select name="grade">
     <option value="">All Grades</option>
@@ -47,12 +52,7 @@ function buildControls({ season, grade, q, top, statType }) {
     `).join('')}
   </select>
 
-  <input 
-    type="text" 
-    name="season" 
-    placeholder="Season e.g. 2024/25" 
-    value="${season || ''}"
-  />
+  <input type="text" name="season" placeholder="Season e.g. 2024/25" value="${season || ''}" />
 
   <select name="statType" onchange="changeStatType(this.value)">
     <option value="games" ${statType === 'games' ? 'selected' : ''}>Games Played</option>
@@ -78,6 +78,7 @@ function buildControls({ season, grade, q, top, statType }) {
 </script>
 `;
 }
+
   const json = await res.json();
 
   if (!res.ok) {
