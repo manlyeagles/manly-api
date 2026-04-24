@@ -41,6 +41,44 @@ function filterBySearch(players, q) {
     return name.includes(q);
   });
 }
+function buildControls({ season, grade, q, top, statType }) {
+  return `
+<form class="filters" method="get">
+  <input type="text" name="q" placeholder="Search player..." value="${q || ''}" />
+
+  <select name="grade">
+    <option value="">All Grades</option>
+    ${['First Grade', 'Second Grade', 'Third Grade', 'Under 18', 'Womens', 'Other'].map(g => `
+      <option value="${g}" ${grade === g ? 'selected' : ''}>${g}</option>
+    `).join('')}
+  </select>
+
+  <input type="text" name="season" placeholder="Season e.g. 2024/25" value="${season || ''}" />
+
+  <select name="statType" onchange="changeStatType(this.value)">
+    <option value="games" ${statType === 'games' ? 'selected' : ''}>Games Played</option>
+    <option value="hitting" ${statType === 'hitting' ? 'selected' : ''}>Hitting</option>
+  </select>
+
+  <select name="top">
+    ${[10, 25, 50, 100].map(n => `
+      <option value="${n}" ${Number(top) === n ? 'selected' : ''}>Top ${n}</option>
+    `).join('')}
+  </select>
+
+  <button type="submit">Apply</button>
+</form>
+
+<script>
+  function changeStatType(type) {
+    const form = document.querySelector('.filters');
+    const params = new URLSearchParams(new FormData(form));
+    params.set('statType', type);
+    window.location.href = '/leaderboard/' + type + '?' + params.toString();
+  }
+</script>
+`;
+}
 
 app.get('/leaderboard/games', async (req, res) => {
   try {
