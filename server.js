@@ -482,7 +482,7 @@ const players = filterBySearch(
     }),
   q
 )
-  .filter(p => p.ab >= 10)
+  .filter(p => q || p.pa >= (p.gp * 1.1))
   .sort((a, b) => b.avg - a.avg)
   .slice(0, top);
 
@@ -778,18 +778,11 @@ last_name: playerLookup[id]?.last_name || '',
       playersMap[id].so += Number(p.so) || 0;
       playersMap[id].hr += Number(p.hr) || 0;
     });
+function formatNumber(value, decimals = 2) {
+  return Number(value || 0).toFixed(decimals);
+}
 
-    const players = filterBySearch(Object.values(playersMap), q)
-      .map(p => {
-        const era = p.ip > 0 ? (p.er * 9) / p.ip : 0;
-        const whip = p.ip > 0 ? (p.bb + p.h) / p.ip : 0;
-        return { ...p, era, whip };
-      })
-      .filter(p => p.ip >= (p.gp * 2.2))
-      .sort((a, b) => a.era - b.era)
-      .slice(0, top);
-
-   function formatIP(ip) {
+function formatIP(ip) {
   if (!ip) return '0.0';
 
   const outs = Math.round(ip * 3);
@@ -798,7 +791,15 @@ last_name: playerLookup[id]?.last_name || '',
 
   return `${whole}.${remainder}`;
 }
-
+    const players = filterBySearch(Object.values(playersMap), q)
+      .map(p => {
+        const era = p.ip > 0 ? (p.er * 9) / p.ip : 0;
+        const whip = p.ip > 0 ? (p.bb + p.h) / p.ip : 0;
+        return { ...p, era, whip };
+      })
+      .filter(p => q || p.ip >= (p.gp * 2.2))
+      .sort((a, b) => a.era - b.era)
+      .slice(0, top);
 
     let rows = '';
 
@@ -973,14 +974,15 @@ app.get('/leaderboard/fielding', async (req, res) => {
       playersMap[id].pik += Number(p.pik) || 0;
     });
 
-    const players = filterBySearch(Object.values(playersMap), q)
-      .map(p => {
-        const fpct = p.tc > 0 ? (p.po + p.a) / p.tc : 0;
-        const cspct = p.att > 0 ? p.cs / p.att : 0;
-        return { ...p, fpct, cspct };
-      })
-      .sort((a, b) => b.fpct - a.fpct)
-      .slice(0, top);
+ const players = filterBySearch(Object.values(playersMap), q)
+  .map(p => {
+    const fpct = p.tc > 0 ? (p.po + p.a) / p.tc : 0;
+    const cspct = p.att > 0 ? p.cs / p.att : 0;
+    return { ...p, fpct, cspct };
+  })
+  .filter(p => q || p.tc >= (p.gp * 2.8))
+  .sort((a, b) => b.fpct - a.fpct)
+  .slice(0, top);
 
     function f(v) { return v ? v.toFixed(3).replace(/^0/, '') : '.000'; }
 
@@ -1360,7 +1362,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   </style>
 </head>
 <body>
-  <h2>All TIme Club Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+  <h2>All Time Club Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
   ${buildControls({ season, grade, q: '', top })}
 
@@ -1401,7 +1403,7 @@ app.get('/leaderboard/fielding-by-grade', async (req, res) => {
   try {
     const { season, grade, top } = getFilters(req, 'fielding-by-grade');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=season_id,grade,tc,a,po,e,dp,tp,inn,pb,sb,att,cs,pik`;
+   let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=player_id,season_id,grade,gp,tc,a,po,fpct,e,dp,tp,inn,pb,sb,att,cs,cspct,pik`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -1417,14 +1419,15 @@ app.get('/leaderboard/fielding-by-grade', async (req, res) => {
 
       if (!rowsMap[g]) {
         rowsMap[g] = {
-          grade: g,
+          grade: g, gp: 0
           tc: 0, a: 0, po: 0, e: 0,
           dp: 0, tp: 0, inn: 0,
           pb: 0, sb: 0, att: 0, cs: 0, pik: 0
         };
       }
 
-      rowsMap[g].tc += Number(p.tc) || 0;
+playersMap[id].gp += Number(p.gp) || 0;      
+rowsMap[g].tc += Number(p.tc) || 0;
       rowsMap[g].a += Number(p.a) || 0;
       rowsMap[g].po += Number(p.po) || 0;
       rowsMap[g].e += Number(p.e) || 0;
