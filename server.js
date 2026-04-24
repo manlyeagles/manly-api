@@ -184,7 +184,7 @@ app.get('/leaderboard/games', async (req, res) => {
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Top 10 Games Played</title>
+  <title>All Time Club Games Played</title>
   <style>
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
@@ -298,7 +298,7 @@ ${buildControls({ season, grade, q, top, statType })}
           <th onclick="sortTable('leaderboardTable', 7, true)">U18</th>
           <th onclick="sortTable('leaderboardTable', 8, true)">Womens</th>
           <th onclick="sortTable('leaderboardTable', 9, true)">Other</th>
-          <th onclick="sortTable('leaderboardTable', 10, true)"># Seasons</th>
+          <th onclick="sortTable('leaderboardTable', 10, true)">#S</th>
           <th onclick="sortTable('leaderboardTable', 11, false)">First Year</th>
           <th onclick="sortTable('leaderboardTable', 12, false)">Last Year</th>
         </tr>
@@ -554,7 +554,7 @@ const players = filterBySearch(
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Top 10 Batting Average</title>
+  <title>All Time Club Hitting</title>
   <style>
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
