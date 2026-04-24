@@ -41,7 +41,7 @@ function filterBySearch(players, q) {
     return name.includes(q);
   });
 }
-function buildControls({ season, grade, q, top, statType }) {
+function buildControls({ season, grade, q, top, }) {
   return `
 <form class="filters" method="get">
   <input type="text" name="q" placeholder="Search player..." value="${q || ''}" />
@@ -53,16 +53,15 @@ function buildControls({ season, grade, q, top, statType }) {
     `).join('')}
   </select>
 
-  <input type="text" name="season" placeholder="Season e.g. 2024/25" value="${season || ''}" />
-
-<select name="statType" onchange="changeStatType(this.value)">
-  <option value="games" ${statType === 'games' ? 'selected' : ''}>Games Played</option>
-  <option value="hitting" ${statType === 'hitting' ? 'selected' : ''}>Hitting</option>
-  <option value="pitching" ${statType === 'pitching' ? 'selected' : ''}>Pitching</option>
+  <select name="season">
+  <option value="">All Seasons</option>
+  ${['2025/26','2024/25','2023/24','2022/23'].map(s => `
+    <option value="${s}" ${season === s ? 'selected' : ''}>${s}</option>
+  `).join('')}
 </select>
 
   <select name="top">
-    ${[10, 25, 50, 100].map(n => `
+    ${[10, 20, 30, 40, 50, 100].map(n => `
       <option value="${n}" ${Number(top) === n ? 'selected' : ''}>Top ${n}</option>
     `).join('')}
   </select>
@@ -70,20 +69,12 @@ function buildControls({ season, grade, q, top, statType }) {
   <button type="submit">Apply</button>
 </form>
 
-<script>
-  function changeStatType(type) {
-    const form = document.querySelector('.filters');
-    const params = new URLSearchParams(new FormData(form));
-    params.set('statType', type);
-    window.location.href = '/leaderboard/' + type + '?' + params.toString();
-  }
-</script>
 `;
 }
 
 app.get('/leaderboard/games', async (req, res) => {
   try {
-   const { season, grade, q, top, statType } = getFilters(req, 'games');
+   const { season, grade, q, top, } = getFilters(req, 'games');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name,jersey_number)`;
 
@@ -284,7 +275,7 @@ app.get('/leaderboard/games', async (req, res) => {
 </head>
 <body>
   <h2>All Time Club Games Played${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-${buildControls({ season, grade, q, top, statType })}
+${buildControls({ season, grade, q, top, })}
   <div class="table-wrapper">
     <table id="leaderboardTable">
       <thead>
@@ -654,7 +645,7 @@ const players = filterBySearch(
 </head>
 <body>
   <h2>All Time Club Hitting${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-${buildControls({ season, grade, q, top, statType })}
+${buildControls({ season, grade, q, top, })}
   <div class="table-wrapper">
     <table id="leaderboardTable">
       <thead>
@@ -771,7 +762,7 @@ playersData.forEach(p => {
         const whip = p.ip > 0 ? (p.bb + p.h) / p.ip : 0;
         return { ...p, era, whip };
       })
-      .filter(p => p.ip >= (p.gp * 1.1))
+      .filter(p => p.ip >= (p.gp * 2.2))
       .sort((a, b) => a.era - b.era)
       .slice(0, top);
 
@@ -861,7 +852,7 @@ playersData.forEach(p => {
 <body>
   <h2>All Time Club Pitching${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-  ${buildControls({ season, grade, q, top, statType })}
+  ${buildControls({ season, grade, q, top, })}
 
   <div class="table-wrapper">
     <table>
