@@ -917,7 +917,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
   try {
     const { season, grade, top } = getFilters(req, 'hitting-by-grade');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=season_id,grade,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -934,13 +934,12 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
       if (!rowsMap[g]) {
         rowsMap[g] = {
           grade: g,
-          gp: 0, pa: 0, ab: 0, h: 0,
+          pa: 0, ab: 0, h: 0,
           single: 0, double: 0, triple: 0, hr: 0,
           rbi: 0, r: 0, bb: 0, so: 0, hbp: 0, sf: 0
         };
       }
 
-      rowsMap[g].gp += Number(p.gp) || 0;
       rowsMap[g].pa += Number(p.pa) || 0;
       rowsMap[g].ab += Number(p.ab) || 0;
       rowsMap[g].h += Number(p.h) || 0;
@@ -984,7 +983,6 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     const tableRows = rowsData.map(p => `
 <tr>
   <td class="left"><b>${p.grade}</b></td>
-  <td class="center">${p.gp}</td>
   <td class="center">${p.pa}</td>
   <td class="center">${p.ab}</td>
   <td class="center">${p.h}</td>
@@ -1026,7 +1024,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
   </style>
 </head>
 <body>
-  <h2>Hitting Stats By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+  <h2>All Time Hitting By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
   ${buildControls({ season, grade, q: '', top })}
 
@@ -1035,7 +1033,6 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
       <thead>
         <tr>
           <th>Grade</th>
-          <th>GP</th>
           <th>PA</th>
           <th>AB</th>
           <th>H</th>
@@ -1064,6 +1061,137 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+app.get('/leaderboard/pitching-by-grade', async (req, res) => {
+  try {
+    const { season, grade, top } = getFilters(req, 'pitching-by-grade');
 
+    let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=season_id,grade,gs,ip,w,l,sv,h,r,er,bb,so,hr`;
+
+    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
+
+    const json = await safeFetchJson(url);
+    const data = Array.isArray(json) ? json : json.data;
+
+    const allowedGrades = ['First Grade', 'Second Grade', 'Third Grade', 'Under 18', 'Womens', 'Other'];
+    const rowsMap = {};
+
+    data.forEach(p => {
+      const g = allowedGrades.includes(p.grade) ? p.grade : 'Other';
+
+      if (!rowsMap[g]) {
+        rowsMap[g] = {
+          grade: g,
+          gs: 0, ip: 0, w: 0, l: 0, sv: 0,
+          h: 0, r: 0, er: 0, bb: 0, so: 0, hr: 0
+        };
+      }
+
+      rowsMap[g].gs += Number(p.gs) || 0;
+      rowsMap[g].ip += Number(p.ip) || 0;
+      rowsMap[g].w += Number(p.w) || 0;
+      rowsMap[g].l += Number(p.l) || 0;
+      rowsMap[g].sv += Number(p.sv) || 0;
+      rowsMap[g].h += Number(p.h) || 0;
+      rowsMap[g].r += Number(p.r) || 0;
+      rowsMap[g].er += Number(p.er) || 0;
+      rowsMap[g].bb += Number(p.bb) || 0;
+      rowsMap[g].so += Number(p.so) || 0;
+      rowsMap[g].hr += Number(p.hr) || 0;
+    });
+
+    function formatNumber(value, decimals = 2) {
+      return Number(value || 0).toFixed(decimals);
+    }
+
+    const rowsData = Object.values(rowsMap)
+      .map(p => {
+        const era = p.ip > 0 ? (p.er * 9) / p.ip : 0;
+        const whip = p.ip > 0 ? (p.bb + p.h) / p.ip : 0;
+        const k9 = p.ip > 0 ? (p.so * 9) / p.ip : 0;
+        return { ...p, era, whip, k9 };
+      })
+      .sort((a, b) => a.era - b.era)
+      .slice(0, top);
+
+    const tableRows = rowsData.map(p => `
+<tr>
+  <td class="left"><b>${p.grade}</b></td>
+  <td class="center">${p.gs}</td>
+  <td class="center">${formatNumber(p.ip, 1)}</td>
+  <td class="center">${p.w}</td>
+  <td class="center">${p.l}</td>
+  <td class="center">${p.sv}</td>
+  <td class="center">${p.h}</td>
+  <td class="center">${p.r}</td>
+  <td class="center">${p.er}</td>
+  <td class="center">${p.bb}</td>
+  <td class="center">${p.so}</td>
+  <td class="center">${p.hr}</td>
+  <td class="center"><b>${formatNumber(p.era, 2)}</b></td>
+  <td class="center">${formatNumber(p.whip, 2)}</td>
+  <td class="center">${formatNumber(p.k9, 2)}</td>
+</tr>
+`).join('');
+
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>All Time Club Pitching By Grade</title>
+  <style>
+    html, body { margin:0; font-family: Arial, sans-serif; }
+    body { padding: 20px; }
+    h2 { margin-bottom: 12px; }
+    .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
+    .filters button { background:#800000; color:white; border:none; cursor:pointer; }
+    .table-wrapper { overflow-x:auto; }
+    table { border-collapse:collapse; width:100%; min-width:1200px; }
+    th, td { border:1px solid #ddd; padding:6px 8px; font-size:12px; white-space:nowrap; }
+    th { background:#800000; color:white; text-align:center; }
+    td.left { text-align:left; }
+    td.center { text-align:center; }
+    tbody tr:nth-child(even) td { background:#f7f7f7; }
+  </style>
+</head>
+<body>
+  <h2>Pitching Stats By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+
+  ${buildControls({ season, grade, q: '', top })}
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Grade</th>
+          <th>GS</th>
+          <th>IP</th>
+          <th>W</th>
+          <th>L</th>
+          <th>SV</th>
+          <th>H</th>
+          <th>R</th>
+          <th>ER</th>
+          <th>BB</th>
+          <th>SO</th>
+          <th>HR</th>
+          <th>ERA</th>
+          <th>WHIP</th>
+          <th>K/9</th>
+        </tr>
+      </thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+  </div>
+</body>
+</html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
 app.listen(3001, () => console.log('Server running'));
 
