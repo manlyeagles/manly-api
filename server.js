@@ -55,10 +55,11 @@ function buildControls({ season, grade, q, top, statType }) {
 
   <input type="text" name="season" placeholder="Season e.g. 2024/25" value="${season || ''}" />
 
-  <select name="statType" onchange="changeStatType(this.value)">
-    <option value="games" ${statType === 'games' ? 'selected' : ''}>Games Played</option>
-    <option value="hitting" ${statType === 'hitting' ? 'selected' : ''}>Hitting</option>
-  </select>
+<select name="statType" onchange="changeStatType(this.value)">
+  <option value="games" ${statType === 'games' ? 'selected' : ''}>Games Played</option>
+  <option value="hitting" ${statType === 'hitting' ? 'selected' : ''}>Hitting</option>
+  <option value="pitching" ${statType === 'pitching' ? 'selected' : ''}>Pitching</option>
+</select>
 
   <select name="top">
     ${[10, 25, 50, 100].map(n => `
