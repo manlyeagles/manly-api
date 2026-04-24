@@ -927,7 +927,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
     const cspct = p.att > 0 ? p.cs / p.att : 0;
     return { ...p, fpct, cspct };
   })
-  .filter(p => q || p.tc >= (p.gp * 2.8))
+  .filter(p => q || p.tc >= 10)
   .sort((a, b) => b.fpct - a.fpct)
   .slice(0, top);
 
