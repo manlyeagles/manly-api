@@ -76,7 +76,7 @@ app.get('/leaderboard/games', async (req, res) => {
   try {
    const { season, grade, q, top, } = getFilters(req, 'games');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name,jersey_number)`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -313,7 +313,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
   try {
    const { season, grade, q, top, statType } = getFilters(req, 'hitting');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name,jersey_number)`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
