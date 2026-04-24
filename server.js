@@ -1099,38 +1099,28 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-const rowsMap = {};
+app.get('/leaderboard/hitting-by-grade', async (req, res) => {
+  try {
+    const { season, grade, q, top } = getFilters(req, 'hitting-by-grade');
 
-data.forEach(p => {
-  const grade = p.grade || 'Other';
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
 
-  if (!['First Grade','Second Grade','Third Grade','Under 18','Womens','Other'].includes(grade)) return;
+    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
 
-  if (!rowsMap[grade]) {
-    rowsMap[grade] = {
-      grade,
-      gp: 0, pa: 0, ab: 0, h: 0,
-      single: 0, double: 0, triple: 0, hr: 0,
-      rbi: 0, r: 0, bb: 0, so: 0, hbp: 0, sf: 0
-    };
-  }
+    const json = await safeFetchJson(url);
+    const data = Array.isArray(json) ? json : json.data;
 
-  rowsMap[grade].gp += Number(p.gp) || 0;
-  rowsMap[grade].pa += Number(p.pa) || 0;
-  rowsMap[grade].ab += Number(p.ab) || 0;
-  rowsMap[grade].h += Number(p.h) || 0;
-  rowsMap[grade].single += Number(p["1B"]) || 0;
-  rowsMap[grade].double += Number(p["2B"]) || 0;
-  rowsMap[grade].triple += Number(p["3B"]) || 0;
-  rowsMap[grade].hr += Number(p.hr) || 0;
-  rowsMap[grade].rbi += Number(p.rbi) || 0;
-  rowsMap[grade].r += Number(p.r) || 0;
-  rowsMap[grade].bb += Number(p.bb) || 0;
-  rowsMap[grade].so += Number(p.so) || 0;
-  rowsMap[grade].hbp += Number(p.hbp) || 0;
-  rowsMap[grade].sf += Number(p.sf) || 0;
-});
+    const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
+    const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name,jersey_number&player_id=in.(${playerIds.join(',')})`;
 
+    const playersJson = await safeFetchJson(playersUrl);
+    const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
+
+    const playerLookup = {};
+    playersData.forEach(p => {
+      playerLookup[p.player_id] = p;
+    });
 
 app.listen(3001, () => console.log('Server running'));
 
