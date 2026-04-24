@@ -712,6 +712,7 @@ ${buildControls({ season, grade, q, top, })}
     res.status(500).send(err.message);
   }
 });
+
 app.get('/leaderboard/pitching', async (req, res) => {
   try {
     const { season, grade, q, top } = getFilters(req, 'pitching');
@@ -867,101 +868,6 @@ ${rows}
   }
 });
 
-
-    res.send(`
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>All Time Club Pitching</title>
-  <style>
-    html, body { margin:0; font-family: Arial, sans-serif; }
-    body { padding: 20px; }
-    h2 { margin-bottom: 12px; }
-
-    .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-
-    .filters input,
-    .filters select,
-    .filters button {
-      padding: 8px;
-      font-size: 13px;
-    }
-
-    .filters button {
-      background: #800000;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-
-    .table-wrapper { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; min-width: 1400px; }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 6px 8px;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-
-    th {
-      background: #800000;
-      color: white;
-      text-align: center;
-    }
-
-    td.left { text-align: left; }
-    td.center { text-align: center; }
-    tbody tr:nth-child(even) td { background: #f7f7f7; }
-  </style>
-</head>
-<body>
-  <h2>All Time Club Pitching${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-
-  ${buildControls({ season, grade, q, top, })}
-
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>First</th>
-          <th>Last</th>
-          <th>GP</th>
-          <th>GS</th>
-          <th>IP</th>
-          <th>W</th>
-          <th>L</th>
-          <th>SV</th>
-          <th>H</th>
-          <th>R</th>
-          <th>ER</th>
-          <th>BB</th>
-          <th>SO</th>
-          <th>HR</th>
-          <th>ERA</th>
-          <th>WHIP</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows}
-      </tbody>
-    </table>
-  </div>
-</body>
-</html>
-    `);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send(err.message);
-  }
-});
 
 app.get('/leaderboard/fielding', async (req, res) => {
   try {
