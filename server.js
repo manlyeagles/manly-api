@@ -1005,9 +1005,11 @@ app.get('/leaderboard/fielding', async (req, res) => {
 <head>
   <meta charset="utf-8" />
   <title>All Time Club Fielding</title>
+
   <style>
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
+
     h2 { margin-bottom: 12px; }
 
     .filters {
@@ -1031,7 +1033,9 @@ app.get('/leaderboard/fielding', async (req, res) => {
       cursor: pointer;
     }
 
-    .table-wrapper { overflow-x: auto; }
+    .table-wrapper {
+      overflow-x: auto;
+    }
 
     table {
       border-collapse: collapse;
@@ -1055,48 +1059,50 @@ app.get('/leaderboard/fielding', async (req, res) => {
     td.left { text-align: left; }
     td.center { text-align: center; }
 
-    tbody tr:nth-child(even) td { background: #f7f7f7; }
+    tbody tr:nth-child(even) td {
+      background: #f7f7f7;
+    }
   </style>
 </head>
+
 <body>
-  <h2>All Time Club Fielding${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-  ${buildControls({ season, grade, q, top })}
+<h2>All Time Club Fielding${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>First</th>
-          <th>Last</th>
-          <th>TC</th>
-          <th>PO</th>
-          <th>A</th>
-          <th>E</th>
-          <th>FPCT</th>
-          <th>DP</th>
-          <th>TP</th>
-          <th>INN</th>
-          <th>PB</th>
-          <th>SB</th>
-          <th>CS</th>
-          <th>ATT</th>
-          <th>CSPCT</th>
-          <th>PIK</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows}
-      </tbody>
-    </table>
-  </div>
+${buildControls({ season, grade, q, top })}
+
+<div class="table-wrapper">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>First</th>
+        <th>Last</th>
+        <th>TC</th>
+        <th>PO</th>
+        <th>A</th>
+        <th>E</th>
+        <th>FPCT</th>
+        <th>DP</th>
+        <th>TP</th>
+        <th>INN</th>
+        <th>PB</th>
+        <th>SB</th>
+        <th>CS</th>
+        <th>ATT</th>
+        <th>CSPCT</th>
+        <th>PIK</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+</div>
+
 </body>
 </html>
 `);
-    res.status(500).send(err.message);
-  }
-});
 
 
 app.get('/leaderboard/hitting-by-grade', async (req, res) => {
