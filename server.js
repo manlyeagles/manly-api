@@ -824,7 +824,7 @@ last_name: playerLookup[id]?.last_name || '',
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>All Time Club Fielding</title>
+  <title>All Time Club Pitching</title>
   <style>
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
@@ -852,12 +852,7 @@ last_name: playerLookup[id]?.last_name || '',
     }
 
     .table-wrapper { overflow-x: auto; }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      min-width: 1300px;
-    }
+    table { border-collapse: collapse; width: 100%; min-width: 1200px; }
 
     th, td {
       border: 1px solid #ddd;
@@ -874,14 +869,13 @@ last_name: playerLookup[id]?.last_name || '',
 
     td.left { text-align: left; }
     td.center { text-align: center; }
-
     tbody tr:nth-child(even) td { background: #f7f7f7; }
   </style>
 </head>
 <body>
-  <h2>All Time Club Fielding${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+  <h2>All Time Club Pitching${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-  ${buildControls({ season, grade, q, top })}
+  ${buildControls({ season, grade, q, top, })}
 
   <div class="table-wrapper">
     <table>
@@ -890,20 +884,20 @@ last_name: playerLookup[id]?.last_name || '',
           <th>#</th>
           <th>First</th>
           <th>Last</th>
-          <th>TC</th>
-          <th>PO</th>
-          <th>A</th>
-          <th>E</th>
-          <th>FPCT</th>
-          <th>DP</th>
-          <th>TP</th>
-          <th>INN</th>
-          <th>PB</th>
-          <th>SB</th>
-          <th>CS</th>
-          <th>ATT</th>
-          <th>CSPCT</th>
-          <th>PIK</th>
+          <th>GP</th>
+          <th>GS</th>
+          <th>IP</th>
+          <th>W</th>
+          <th>L</th>
+          <th>SV</th>
+          <th>H</th>
+          <th>R</th>
+          <th>ER</th>
+          <th>BB</th>
+          <th>SO</th>
+          <th>HR</th>
+          <th>ERA</th>
+          <th>WHIP</th>
         </tr>
       </thead>
       <tbody>
@@ -913,8 +907,7 @@ last_name: playerLookup[id]?.last_name || '',
   </div>
 </body>
 </html>
-`);
-
+    `);
   } catch (err) {
     console.error(err);
     res.status(500).send(err.message);
@@ -1011,39 +1004,96 @@ app.get('/leaderboard/fielding', async (req, res) => {
 <html>
 <head>
   <meta charset="utf-8" />
-<h2>All Time Club Fielding</h2>
-${buildControls({ season, grade, q, top })}
- <div class="table-wrapper">
+  <title>All Time Club Fielding</title>
+  <style>
+    html, body { margin:0; font-family: Arial, sans-serif; }
+    body { padding: 20px; }
+    h2 { margin-bottom: 12px; }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .filters input,
+    .filters select,
+    .filters button {
+      padding: 8px;
+      font-size: 13px;
+    }
+
+    .filters button {
+      background: #800000;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: 1300px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 6px 8px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    th {
+      background: #800000;
+      color: white;
+      text-align: center;
+    }
+
+    td.left { text-align: left; }
+    td.center { text-align: center; }
+
+    tbody tr:nth-child(even) td { background: #f7f7f7; }
+  </style>
+</head>
+<body>
+  <h2>All Time Club Fielding${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+
+  ${buildControls({ season, grade, q, top })}
+
+  <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-
-<th>#</th>
-<th>First</th>
-<th>Last</th>
-<th>TC</th>
-<th>PO</th>
-<th>A</th>
-<th>E</th>
-<th>FPCT</th>
-<th>DP</th>
-<th>TP</th>
-<th>INN</th>
-<th>PB</th>
-<th>SB</th>
-<th>CS</th>
-<th>ATT</th>
-<th>CSPCT</th>
-<th>PIK</th>
-</tr>
-${rows}
-</table>
+          <th>#</th>
+          <th>First</th>
+          <th>Last</th>
+          <th>TC</th>
+          <th>PO</th>
+          <th>A</th>
+          <th>E</th>
+          <th>FPCT</th>
+          <th>DP</th>
+          <th>TP</th>
+          <th>INN</th>
+          <th>PB</th>
+          <th>SB</th>
+          <th>CS</th>
+          <th>ATT</th>
+          <th>CSPCT</th>
+          <th>PIK</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows}
+      </tbody>
+    </table>
+  </div>
 </body>
 </html>
-    `);
-
-  } catch (err) {
-    console.error(err);
+`);
     res.status(500).send(err.message);
   }
 });
