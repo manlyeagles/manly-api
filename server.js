@@ -214,7 +214,7 @@ last_name: playerLookup[id]?.last_name || '',
 }
 
     .table-wrapper { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; min-width: 1000px; }
+    table { border-collapse: collapse; width: 100%; min-width: 1400px; }
     th, td {
       border: 1px solid #ddd;
       padding: 6px 8px;
@@ -596,7 +596,7 @@ const players = filterBySearch(
 }
 
     .table-wrapper { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; min-width: 1700px; }
+    table { border-collapse: collapse; width: 100%; min-width: 1400px; }
     th, td {
       border: 1px solid #ddd;
       padding: 6px 8px;
@@ -852,7 +852,7 @@ last_name: playerLookup[id]?.last_name || '',
     }
 
     .table-wrapper { overflow-x: auto; }
-    table { border-collapse: collapse; width: 100%; min-width: 1200px; }
+    table { border-collapse: collapse; width: 100%; min-width: 1400px; }
 
     th, td {
       border: 1px solid #ddd;
@@ -1040,7 +1040,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
     table {
       border-collapse: collapse;
       width: 100%;
-      min-width: 1300px;
+      min-width: 1400px;
     }
 
     th, td {
@@ -1211,7 +1211,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
     .filters button { background:#800000; color:white; border:none; cursor:pointer; }
     .table-wrapper { overflow-x:auto; }
-    table { border-collapse:collapse; width:100%; min-width:1200px; }
+    table { border-collapse:collapse; width:100%; min-width:1400px; }
     th, td { border:1px solid #ddd; padding:6px 8px; font-size:12px; white-space:nowrap; }
     th { background:#800000; color:white; text-align:center; }
     td.left { text-align:left; }
@@ -1344,7 +1344,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
     .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
     .filters button { background:#800000; color:white; border:none; cursor:pointer; }
     .table-wrapper { overflow-x:auto; }
-    table { border-collapse:collapse; width:100%; min-width:1200px; }
+    table { border-collapse:collapse; width:100%; min-width:1400px; }
     th, td { border:1px solid #ddd; padding:6px 8px; font-size:12px; white-space:nowrap; }
     th { background:#800000; color:white; text-align:center; }
     td.left { text-align:left; }
@@ -1389,5 +1389,140 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
+
+app.get('/leaderboard/fielding-by-grade', async (req, res) => {
+  try {
+    const { season, grade, top } = getFilters(req, 'fielding-by-grade');
+
+    let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=season_id,grade,tc,a,po,e,dp,tp,inn,pb,sb,att,cs,pik`;
+
+    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
+
+    const json = await safeFetchJson(url);
+    const data = Array.isArray(json) ? json : json.data;
+
+    const allowedGrades = ['First Grade', 'Second Grade', 'Third Grade', 'Under 18', 'Womens', 'Other'];
+    const rowsMap = {};
+
+    data.forEach(p => {
+      const g = allowedGrades.includes(p.grade) ? p.grade : 'Other';
+
+      if (!rowsMap[g]) {
+        rowsMap[g] = {
+          grade: g,
+          tc: 0, a: 0, po: 0, e: 0,
+          dp: 0, tp: 0, inn: 0,
+          pb: 0, sb: 0, att: 0, cs: 0, pik: 0
+        };
+      }
+
+      rowsMap[g].tc += Number(p.tc) || 0;
+      rowsMap[g].a += Number(p.a) || 0;
+      rowsMap[g].po += Number(p.po) || 0;
+      rowsMap[g].e += Number(p.e) || 0;
+      rowsMap[g].dp += Number(p.dp) || 0;
+      rowsMap[g].tp += Number(p.tp) || 0;
+      rowsMap[g].inn += Number(p.inn) || 0;
+      rowsMap[g].pb += Number(p.pb) || 0;
+      rowsMap[g].sb += Number(p.sb) || 0;
+      rowsMap[g].att += Number(p.att) || 0;
+      rowsMap[g].cs += Number(p.cs) || 0;
+      rowsMap[g].pik += Number(p.pik) || 0;
+    });
+
+    function f(v) {
+      return v ? v.toFixed(3).replace(/^0/, '') : '.000';
+    }
+
+    const rowsData = Object.values(rowsMap)
+      .map(p => {
+        const fpct = p.tc > 0 ? (p.po + p.a) / p.tc : 0;
+        const cspct = p.att > 0 ? p.cs / p.att : 0;
+        return { ...p, fpct, cspct };
+      })
+      .sort((a, b) => b.fpct - a.fpct)
+      .slice(0, top);
+
+    const tableRows = rowsData.map(p => `
+<tr>
+  <td class="left"><b>${p.grade}</b></td>
+  <td class="center">${p.tc}</td>
+  <td class="center">${p.po}</td>
+  <td class="center">${p.a}</td>
+  <td class="center">${p.e}</td>
+  <td class="center"><b>${f(p.fpct)}</b></td>
+  <td class="center">${p.dp}</td>
+  <td class="center">${p.tp}</td>
+  <td class="center">${p.inn}</td>
+  <td class="center">${p.pb}</td>
+  <td class="center">${p.sb}</td>
+  <td class="center">${p.cs}</td>
+  <td class="center">${p.att}</td>
+  <td class="center">${f(p.cspct)}</td>
+  <td class="center">${p.pik}</td>
+</tr>
+`).join('');
+
+    res.send(`
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>All Time Fielding By Grade</title>
+  <style>
+    html, body { margin:0; font-family: Arial, sans-serif; }
+    body { padding: 20px; }
+    h2 { margin-bottom: 12px; }
+    .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+    .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
+    .filters button { background:#800000; color:white; border:none; cursor:pointer; }
+    .table-wrapper { overflow-x:auto; }
+    table { border-collapse:collapse; width:100%; min-width:1200px; }
+    th, td { border:1px solid #ddd; padding:6px 8px; font-size:12px; white-space:nowrap; }
+    th { background:#800000; color:white; text-align:center; }
+    td.left { text-align:left; }
+    td.center { text-align:center; }
+    tbody tr:nth-child(even) td { background:#f7f7f7; }
+  </style>
+</head>
+<body>
+  <h2>All Time Club Fielding By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+
+  ${buildControls({ season, grade, q: '', top })}
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Grade</th>
+          <th>TC</th>
+          <th>PO</th>
+          <th>A</th>
+          <th>E</th>
+          <th>FPCT</th>
+          <th>DP</th>
+          <th>TP</th>
+          <th>INN</th>
+          <th>PB</th>
+          <th>SB</th>
+          <th>CS</th>
+          <th>ATT</th>
+          <th>CSPCT</th>
+          <th>PIK</th>
+        </tr>
+      </thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+  </div>
+</body>
+</html>
+    `);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
 app.listen(3001, () => console.log('Server running'));
 
