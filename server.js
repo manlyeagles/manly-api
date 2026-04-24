@@ -789,9 +789,16 @@ last_name: playerLookup[id]?.last_name || '',
       .sort((a, b) => a.era - b.era)
       .slice(0, top);
 
-    function formatNumber(value, decimals = 2) {
-      return Number(value || 0).toFixed(decimals);
-    }
+   function formatIP(ip) {
+  if (!ip) return '0.0';
+
+  const outs = Math.round(ip * 3);
+  const whole = Math.floor(outs / 3);
+  const remainder = outs % 3;
+
+  return `${whole}.${remainder}`;
+}
+
 
     let rows = '';
 
@@ -803,7 +810,7 @@ last_name: playerLookup[id]?.last_name || '',
   <td class="left">${p.last_name}</td>
   <td class="center">${p.gp}</td>
   <td class="center">${p.gs}</td>
-  <td class="center">${formatNumber(p.ip, 1)}</td>
+ <td class="center">${formatIP(p.ip)}</td>
   <td class="center">${p.w}</td>
   <td class="center">${p.l}</td>
   <td class="center">${p.sv}</td>
@@ -1314,7 +1321,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
 <tr>
   <td class="left"><b>${p.grade}</b></td>
   <td class="center">${p.gs}</td>
-  <td class="center">${formatNumber(p.ip, 1)}</td>
+ <td class="center">${formatIP(p.ip)}</td>
   <td class="center">${p.w}</td>
   <td class="center">${p.l}</td>
   <td class="center">${p.sv}</td>
