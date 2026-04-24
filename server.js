@@ -820,7 +820,6 @@ last_name: playerLookup[id]?.last_name || '',
     });
 
     res.send(`
-res.send(`
 <!DOCTYPE html>
 <html>
 <head>
