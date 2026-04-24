@@ -12,15 +12,6 @@ async function safeFetchJson(url) {
     }
   });
 
-  const json = await res.json();
-
-  if (!res.ok) {
-    throw new Error(json.message || 'Supabase request failed');
-  }
-
-  return json;
-}
-
 function getFilters(req, defaultStatType) {
   return {
     season: req.query.season || '',
