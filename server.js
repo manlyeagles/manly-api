@@ -913,6 +913,117 @@ last_name: playerLookup[id]?.last_name || '',
     res.status(500).send(err.message);
   }
 });
+
+app.get('/leaderboard/fielding', async (req, res) => {
+  try {
+    const { season, grade, q, top } = getFilters(req, 'fielding');
+
+    let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=player_id,season_id,grade,tc,a,po,fpct,e,dp,tp,inn,pb,sb,att,cs,cspct,pik`;
+
+    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
+    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
+
+    const json = await safeFetchJson(url);
+    const data = Array.isArray(json) ? json : json.data;
+
+    const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
+
+    const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name,jersey_number&player_id=in.(${playerIds.join(',')})`;
+
+    const playersJson = await safeFetchJson(playersUrl);
+    const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
+
+    const playerLookup = {};
+    playersData.forEach(p => playerLookup[p.player_id] = p);
+
+    const playersMap = {};
+
+    data.forEach(p => {
+      const id = Number(p.player_id);
+      if (!id) return;
+
+      if (!playersMap[id]) {
+        playersMap[id] = {
+          jersey_number: playerLookup[id]?.jersey_number || '',
+          first_name: playerLookup[id]?.first_name || '',
+          last_name: playerLookup[id]?.last_name || '',
+          tc: 0, a: 0, po: 0, e: 0, dp: 0, tp: 0,
+          inn: 0, pb: 0, sb: 0, att: 0, cs: 0, pik: 0
+        };
+      }
+
+      playersMap[id].tc += Number(p.tc) || 0;
+      playersMap[id].a += Number(p.a) || 0;
+      playersMap[id].po += Number(p.po) || 0;
+      playersMap[id].e += Number(p.e) || 0;
+      playersMap[id].dp += Number(p.dp) || 0;
+      playersMap[id].tp += Number(p.tp) || 0;
+      playersMap[id].inn += Number(p.inn) || 0;
+      playersMap[id].pb += Number(p.pb) || 0;
+      playersMap[id].sb += Number(p.sb) || 0;
+      playersMap[id].att += Number(p.att) || 0;
+      playersMap[id].cs += Number(p.cs) || 0;
+      playersMap[id].pik += Number(p.pik) || 0;
+    });
+
+    const players = filterBySearch(Object.values(playersMap), q)
+      .map(p => {
+        const fpct = p.tc > 0 ? (p.po + p.a) / p.tc : 0;
+        const cspct = p.att > 0 ? p.cs / p.att : 0;
+        return { ...p, fpct, cspct };
+      })
+      .sort((a, b) => b.fpct - a.fpct)
+      .slice(0, top);
+
+    function f(v) { return v ? v.toFixed(3).replace(/^0/, '') : '.000'; }
+
+    const rows = players.map(p => `
+<tr>
+  <td class="center">${p.jersey_number}</td>
+  <td class="left">${p.first_name}</td>
+  <td class="left">${p.last_name}</td>
+  <td class="center">${p.tc}</td>
+  <td class="center">${p.po}</td>
+  <td class="center">${p.a}</td>
+  <td class="center">${p.e}</td>
+  <td class="center"><b>${f(p.fpct)}</b></td>
+  <td class="center">${p.dp}</td>
+  <td class="center">${p.tp}</td>
+  <td class="center">${p.inn}</td>
+  <td class="center">${p.pb}</td>
+  <td class="center">${p.sb}</td>
+  <td class="center">${p.cs}</td>
+  <td class="center">${p.att}</td>
+  <td class="center">${f(p.cspct)}</td>
+  <td class="center">${p.pik}</td>
+</tr>
+`).join('');
+
+    res.send(`
+<html>
+<body>
+<h2>All Time Club Fielding</h2>
+${buildControls({ season, grade, q, top })}
+<table border="1">
+<tr>
+<th>#</th><th>First</th><th>Last</th>
+<th>TC</th><th>PO</th><th>A</th><th>E</th><th>FPCT</th>
+<th>DP</th><th>TP</th><th>INN</th>
+<th>PB</th><th>SB</th><th>CS</th><th>ATT</th><th>CSPCT</th><th>PIK</th>
+</tr>
+${rows}
+</table>
+</body>
+</html>
+    `);
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
+
+
 app.get('/leaderboard/hitting-by-grade', async (req, res) => {
   try {
     const { season, grade, top } = getFilters(req, 'hitting-by-grade');
@@ -1139,7 +1250,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>All Time Club Pitching By Grade</title>
+  <title>All Time Pitching By Grade</title>
   <style>
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
@@ -1157,7 +1268,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   </style>
 </head>
 <body>
-  <h2>Pitching Stats By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+  <h2>All TIme Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
   ${buildControls({ season, grade, q: '', top })}
 
