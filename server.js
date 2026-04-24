@@ -915,9 +915,9 @@ last_name: playerLookup[id]?.last_name || '',
 });
 app.get('/leaderboard/hitting-by-grade', async (req, res) => {
   try {
-    const { season, grade, q, top } = getFilters(req, 'hitting-by-grade');
+    const { season, grade, top } = getFilters(req, 'hitting-by-grade');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -925,63 +925,35 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     const json = await safeFetchJson(url);
     const data = Array.isArray(json) ? json : json.data;
 
-    const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
-    const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name,jersey_number&player_id=in.(${playerIds.join(',')})`;
-
-    const playersJson = await safeFetchJson(playersUrl);
-    const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
-
-    const playerLookup = {};
-    playersData.forEach(p => {
-      playerLookup[p.player_id] = p;
-    });
-
+    const allowedGrades = ['First Grade', 'Second Grade', 'Third Grade', 'Under 18', 'Womens', 'Other'];
     const rowsMap = {};
 
     data.forEach(p => {
-      const id = Number(p.player_id);
-      if (!id) return;
+      const g = allowedGrades.includes(p.grade) ? p.grade : 'Other';
 
-      const key = `${id}-${p.grade}`;
-
-      if (!rowsMap[key]) {
-        rowsMap[key] = {
-          player_id: id,
-          jersey_number: playerLookup[id]?.jersey_number || '',
-          first_name: playerLookup[id]?.first_name || '',
-          last_name: playerLookup[id]?.last_name || '',
-          grade: p.grade || 'Other',
-          gp: 0,
-          pa: 0,
-          ab: 0,
-          h: 0,
-          single: 0,
-          double: 0,
-          triple: 0,
-          hr: 0,
-          rbi: 0,
-          r: 0,
-          bb: 0,
-          so: 0,
-          hbp: 0,
-          sf: 0
+      if (!rowsMap[g]) {
+        rowsMap[g] = {
+          grade: g,
+          gp: 0, pa: 0, ab: 0, h: 0,
+          single: 0, double: 0, triple: 0, hr: 0,
+          rbi: 0, r: 0, bb: 0, so: 0, hbp: 0, sf: 0
         };
       }
 
-      rowsMap[key].gp += Number(p.gp) || 0;
-      rowsMap[key].pa += Number(p.pa) || 0;
-      rowsMap[key].ab += Number(p.ab) || 0;
-      rowsMap[key].h += Number(p.h) || 0;
-      rowsMap[key].single += Number(p["1B"]) || 0;
-      rowsMap[key].double += Number(p["2B"]) || 0;
-      rowsMap[key].triple += Number(p["3B"]) || 0;
-      rowsMap[key].hr += Number(p.hr) || 0;
-      rowsMap[key].rbi += Number(p.rbi) || 0;
-      rowsMap[key].r += Number(p.r) || 0;
-      rowsMap[key].bb += Number(p.bb) || 0;
-      rowsMap[key].so += Number(p.so) || 0;
-      rowsMap[key].hbp += Number(p.hbp) || 0;
-      rowsMap[key].sf += Number(p.sf) || 0;
+      rowsMap[g].gp += Number(p.gp) || 0;
+      rowsMap[g].pa += Number(p.pa) || 0;
+      rowsMap[g].ab += Number(p.ab) || 0;
+      rowsMap[g].h += Number(p.h) || 0;
+      rowsMap[g].single += Number(p["1B"]) || 0;
+      rowsMap[g].double += Number(p["2B"]) || 0;
+      rowsMap[g].triple += Number(p["3B"]) || 0;
+      rowsMap[g].hr += Number(p.hr) || 0;
+      rowsMap[g].rbi += Number(p.rbi) || 0;
+      rowsMap[g].r += Number(p.r) || 0;
+      rowsMap[g].bb += Number(p.bb) || 0;
+      rowsMap[g].so += Number(p.so) || 0;
+      rowsMap[g].hbp += Number(p.hbp) || 0;
+      rowsMap[g].sf += Number(p.sf) || 0;
     });
 
     function formatAvg(value) {
@@ -998,7 +970,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
       return ab > 0 ? tb / ab : 0;
     }
 
-    const rowsData = filterBySearch(Object.values(rowsMap), q)
+    const rowsData = Object.values(rowsMap)
       .map(p => {
         const avg = p.ab > 0 ? p.h / p.ab : 0;
         const obp = calcObp(p.h, p.bb, p.hbp, p.ab, p.sf);
@@ -1006,16 +978,12 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
         const ops = obp + slg;
         return { ...p, avg, obp, slg, ops };
       })
-      .filter(p => p.ab >= 10)
       .sort((a, b) => b.avg - a.avg)
       .slice(0, top);
 
     const tableRows = rowsData.map(p => `
 <tr>
-  <td class="center">${p.jersey_number}</td>
-  <td class="left">${p.first_name}</td>
-  <td class="left">${p.last_name}</td>
-  <td class="center">${p.grade}</td>
+  <td class="left"><b>${p.grade}</b></td>
   <td class="center">${p.gp}</td>
   <td class="center">${p.pa}</td>
   <td class="center">${p.ab}</td>
@@ -1049,7 +1017,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
     .filters button { background:#800000; color:white; border:none; cursor:pointer; }
     .table-wrapper { overflow-x:auto; }
-    table { border-collapse:collapse; width:100%; min-width:1500px; }
+    table { border-collapse:collapse; width:100%; min-width:1200px; }
     th, td { border:1px solid #ddd; padding:6px 8px; font-size:12px; white-space:nowrap; }
     th { background:#800000; color:white; text-align:center; }
     td.left { text-align:left; }
@@ -1060,15 +1028,12 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
 <body>
   <h2>Hitting Stats By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-  ${buildControls({ season, grade, q, top })}
+  ${buildControls({ season, grade, q: '', top })}
 
   <div class="table-wrapper">
     <table>
       <thead>
         <tr>
-          <th>#</th>
-          <th>First</th>
-          <th>Last</th>
           <th>Grade</th>
           <th>GP</th>
           <th>PA</th>
@@ -1099,28 +1064,6 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     res.status(500).send(err.message);
   }
 });
-app.get('/leaderboard/hitting-by-grade', async (req, res) => {
-  try {
-    const { season, grade, q, top } = getFilters(req, 'hitting-by-grade');
-
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
-
-    if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
-    if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
-
-    const json = await safeFetchJson(url);
-    const data = Array.isArray(json) ? json : json.data;
-
-    const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
-    const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name,jersey_number&player_id=in.(${playerIds.join(',')})`;
-
-    const playersJson = await safeFetchJson(playersUrl);
-    const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
-
-    const playerLookup = {};
-    playersData.forEach(p => {
-      playerLookup[p.player_id] = p;
-    });
 
 app.listen(3001, () => console.log('Server running'));
 
