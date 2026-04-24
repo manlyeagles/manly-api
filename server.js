@@ -85,7 +85,7 @@ app.get('/leaderboard/games', async (req, res) => {
   try {
    const { season, grade, q, top, statType } = getFilters(req, 'games');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name,jersey_number)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -106,10 +106,10 @@ app.get('/leaderboard/games', async (req, res) => {
 
       if (!playersMap[id]) {
         playersMap[id] = {
-          player_id: id,
-          first_name: p.players?.first_name || p.first_name || '',
-          last_name: p.players?.last_name || p.last_name || '',
-          total_games: 0,
+    jersey_number: Number(p.jersey_number) || '',
+  first_name: playerLookup[id]?.first_name || '',
+  last_name: playerLookup[id]?.last_name || '',
+         total_games: 0,
           seasons: {}
         };
       }
@@ -149,7 +149,7 @@ app.get('/leaderboard/games', async (req, res) => {
 
         rows += `
 <tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
-  <td class="center">${index + 1}</td>
+  <td class="center">${p.jersey_number}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
   <td class="center"><b>${player.total_games}</b></td>
@@ -289,7 +289,7 @@ ${buildControls({ season, grade, q, top, statType })}
     <table id="leaderboardTable">
       <thead>
         <tr>
-          <th onclick="sortTable('leaderboardTable', 0, true)">Rank</th>
+          <th onclick="sortTable('leaderboardTable', 0, true)">#</th>
           <th onclick="sortTable('leaderboardTable', 1, false)">First</th>
           <th onclick="sortTable('leaderboardTable', 2, false)">Last</th>
           <th onclick="sortTable('leaderboardTable', 3, true)">Total</th>
@@ -322,7 +322,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
   try {
    const { season, grade, q, top, statType } = getFilters(req, 'hitting');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name)`;
+    let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name,jersey_number)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -342,11 +342,11 @@ app.get('/leaderboard/hitting', async (req, res) => {
       if (!id) return;
 
       if (!playersMap[id]) {
-        playersMap[id] = {
-          player_id: id,
-          first_name: p.players?.first_name || p.first_name || '',
-          last_name: p.players?.last_name || p.last_name || '',
-          gp: 0, pa: 0, ab: 0, h: 0,
+          playersMap[id] = {
+    jersey_number: Number(p.jersey_number) || '',
+  first_name: playerLookup[id]?.first_name || '',
+  last_name: playerLookup[id]?.last_name || '',
+                 gp: 0, pa: 0, ab: 0, h: 0,
           single: 0, double: 0, triple: 0, hr: 0,
           rbi: 0, r: 0, so: 0, kl: 0, bb: 0, hbp: 0,
           roe: 0, fc: 0, ci: 0, sac: 0, sf: 0, lob: 0,
@@ -481,7 +481,7 @@ const players = filterBySearch(
 
         rows += `
 <tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
-  <td class="center">${index + 1}</td>
+<td class="center">${p.jersey_number}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
   <td class="center">${player.gp}</td>
@@ -659,7 +659,7 @@ ${buildControls({ season, grade, q, top, statType })}
     <table id="leaderboardTable">
       <thead>
         <tr>
-          <th onclick="sortTable('leaderboardTable', 0, true)">Rank</th>
+          <th onclick="sortTable('leaderboardTable', 0, true)">#</th>
           <th onclick="sortTable('leaderboardTable', 1, false)">First</th>
           <th onclick="sortTable('leaderboardTable', 2, false)">Last</th>
           <th onclick="sortTable('leaderboardTable', 3, true)">GP</th>
@@ -702,13 +702,24 @@ app.get('/leaderboard/pitching', async (req, res) => {
   try {
     const { season, grade, q, top, statType } = getFilters(req, 'pitching');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=player_id,season_id,grade,gp,gs,ip,w,l,sv,h,r,er,bb,so,k_look,hbp,era,whip,bf,nop,hr,players(first_name,last_name,player_code)`;
+    let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=player_id,season_id,grade,gp,gs,ip,w,l,sv,h,r,er,bb,so,k_look,hbp,era,whip,bf,nop,hr`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
 
     const json = await safeFetchJson(url);
     const data = Array.isArray(json) ? json : json.data;
+const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
+
+const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name&player_id=in.(${playerIds.join(',')})`;
+
+const playersJson = await safeFetchJson(playersUrl);
+const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
+
+const playerLookup = {};
+playersData.forEach(p => {
+  playerLookup[p.player_id] = p;
+});
 
     if (!Array.isArray(data)) {
       return res.status(500).send('Invalid pitching response');
@@ -721,11 +732,10 @@ app.get('/leaderboard/pitching', async (req, res) => {
       if (!id) return;
 
       if (!playersMap[id]) {
-        playersMap[id] = {
-          player_id: id,
-          player_code: p.players?.player_code || '',
-          first_name: p.players?.first_name || '',
-          last_name: p.players?.last_name || '',
+          playersMap[id] = {
+    jersey_number: Number(p.jersey_number) || '',
+  first_name: playerLookup[id]?.first_name || '',
+  last_name: playerLookup[id]?.last_name || '',
           gp: 0,
           gs: 0,
           ip: 0,
@@ -761,7 +771,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
         const whip = p.ip > 0 ? (p.bb + p.h) / p.ip : 0;
         return { ...p, era, whip };
       })
-      .filter(p => p.ip > 0)
+      .filter(p => p.ip >= (p.gp * 1.1))
       .sort((a, b) => a.era - b.era)
       .slice(0, top);
 
@@ -774,9 +784,8 @@ app.get('/leaderboard/pitching', async (req, res) => {
     players.forEach((p, index) => {
       rows += `
 <tr>
-  <td class="center">${index + 1}</td>
-  <td class="center">${p.player_code}</td>
-  <td class="left">${p.first_name}</td>
+  <td class="center">${p.jersey_number}</td>
+    <td class="left">${p.first_name}</td>
   <td class="left">${p.last_name}</td>
   <td class="center">${p.gp}</td>
   <td class="center">${p.gs}</td>
@@ -858,8 +867,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
     <table>
       <thead>
         <tr>
-          <th>Rank</th>
-          <th>Code</th>
+          <th>#</th>
           <th>First</th>
           <th>Last</th>
           <th>GP</th>
