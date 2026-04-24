@@ -1,3 +1,16 @@
+const express = require('express');
+const app = express();
+
+const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
+
+async function safeFetchJson(url) {
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
+  });
 function getFilters(req, defaultStatType) {
   return {
     season: req.query.season || '',
@@ -16,8 +29,6 @@ function filterBySearch(players, q) {
     return name.includes(q);
   });
 }
-
-
 app.get('/leaderboard/games', async (req, res) => {
   try {
    const { season, grade, q, top, statType } = getFilters(req, 'games');
