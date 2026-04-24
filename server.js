@@ -1362,7 +1362,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   </style>
 </head>
 <body>
-  <h2>All Time Club Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
+  <h2>All TIme Club Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
   ${buildControls({ season, grade, q: '', top })}
 
@@ -1418,15 +1418,17 @@ app.get('/leaderboard/fielding-by-grade', async (req, res) => {
       const g = allowedGrades.includes(p.grade) ? p.grade : 'Other';
 
       if (!rowsMap[g]) {
-        rowsMap[g] = {
-          grade: g, gp: 0
-          tc: 0, a: 0, po: 0, e: 0,
+       rowsMap[g] = {
+  grade: g,
+  gp: 0,
+  tc: 0, a: 0, po: 0, e: 0,
+
           dp: 0, tp: 0, inn: 0,
           pb: 0, sb: 0, att: 0, cs: 0, pik: 0
         };
       }
 
-playersMap[id].gp += Number(p.gp) || 0;      
+rowsMap[g].gp += Number(p.gp) || 0;    
 rowsMap[g].tc += Number(p.tc) || 0;
       rowsMap[g].a += Number(p.a) || 0;
       rowsMap[g].po += Number(p.po) || 0;
