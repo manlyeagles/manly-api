@@ -30,7 +30,6 @@ function getFilters(req, defaultStatType) {
     statType: req.query.statType || defaultStatType
   };
 }
-
 function filterBySearch(players, q) {
   if (!q) return players;
 
