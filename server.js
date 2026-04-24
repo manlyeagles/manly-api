@@ -5,6 +5,12 @@ const SUPABASE_URL = 'https://rtmzihkxiwiilxytahre.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_ZG0Uq-sVDa0aFI1zkVHZiw_wBBNYpA4';
 
 async function safeFetchJson(url) {
+  const res = await fetch(url, {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
+  });
 function getFilters(req, defaultStatType) {
   return {
     season: req.query.season || '',
@@ -72,13 +78,6 @@ function buildControls({ season, grade, q, top, statType }) {
 </script>
 `;
 }
-  const res = await fetch(url, {
-    headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
-    }
-  });
-
   const json = await res.json();
 
   if (!res.ok) {
@@ -90,7 +89,7 @@ function buildControls({ season, grade, q, top, statType }) {
 
 app.get('/leaderboard/games', async (req, res) => {
   try {
-  const { season, grade, q, top, statType } = getFilters(req, 'games');
+   const { season, grade, q, top, statType } = getFilters(req, 'games');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
 
@@ -133,9 +132,10 @@ app.get('/leaderboard/games', async (req, res) => {
       playersMap[id].seasons[s][g] += gp;
     });
 
-    const players = Object.values(playersMap)
-      .sort((a, b) => b.total_games - a.total_games)
-     const players = filterBySearch(Object.values(playersMap), q)
+    const players = filterBySearch(Object.values(playersMap), q)
+  .sort((a, b) => b.total_games - a.total_games)
+  .slice(0, top);
+
 
     function buildGamesTable(players) {
       let rows = '';
@@ -196,6 +196,27 @@ app.get('/leaderboard/games', async (req, res) => {
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
     h2 { margin-bottom: 12px; }
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filters input,
+.filters select,
+.filters button {
+  padding: 8px;
+  font-size: 13px;
+}
+
+.filters button {
+  background: #800000;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
     .table-wrapper { overflow-x: auto; }
     table { border-collapse: collapse; width: 100%; min-width: 1000px; }
     th, td {
@@ -269,7 +290,7 @@ app.get('/leaderboard/games', async (req, res) => {
 </head>
 <body>
   <h2>Top 10 Games Played${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-
+${buildControls({ season, grade, q, top, statType })}
   <div class="table-wrapper">
     <table id="leaderboardTable">
       <thead>
@@ -305,7 +326,7 @@ app.get('/leaderboard/games', async (req, res) => {
 
 app.get('/leaderboard/hitting', async (req, res) => {
   try {
- const { season, grade, q, top, statType } = getFilters(req, 'hitting');
+   const { season, grade, q, top, statType } = getFilters(req, 'hitting');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name)`;
 
@@ -442,17 +463,21 @@ app.get('/leaderboard/hitting', async (req, res) => {
       return ab > 0 ? tb / ab : 0;
     }
 
-    const players = Object.values(playersMap)
-      .map(p => {
-        const avg = p.ab > 0 ? p.h / p.ab : 0;
-        const obp = calcObp(p.h, p.bb, p.hbp, p.ab, p.sf);
-        const slg = calcSlg(p.single, p.double, p.triple, p.hr, p.ab);
-        const ops = obp + slg;
-        return { ...p, avg, obp, slg, ops };
-      })
-      .filter(p => p.ab >= 10)
-      .sort((a, b) => b.avg - a.avg)
-      const players = filterBySearch(Object.values(playersMap), q)
+const players = filterBySearch(
+  Object.values(playersMap)
+    .map(p => {
+      const avg = p.ab > 0 ? p.h / p.ab : 0;
+      const obp = calcObp(p.h, p.bb, p.hbp, p.ab, p.sf);
+      const slg = calcSlg(p.single, p.double, p.triple, p.hr, p.ab);
+      const ops = obp + slg;
+      return { ...p, avg, obp, slg, ops };
+    }),
+  q
+)
+  .filter(p => p.ab >= 10)
+  .sort((a, b) => b.avg - a.avg)
+  .slice(0, top);
+
 
     function buildHittingTable(players) {
       let rows = '';
@@ -541,6 +566,27 @@ app.get('/leaderboard/hitting', async (req, res) => {
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
     h2 { margin-bottom: 12px; }
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.filters input,
+.filters select,
+.filters button {
+  padding: 8px;
+  font-size: 13px;
+}
+
+.filters button {
+  background: #800000;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
     .table-wrapper { overflow-x: auto; }
     table { border-collapse: collapse; width: 100%; min-width: 1700px; }
     th, td {
@@ -614,7 +660,7 @@ app.get('/leaderboard/hitting', async (req, res) => {
 </head>
 <body>
   <h2>Top 10 Batting Average${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-
+${buildControls({ season, grade, q, top, statType })}
   <div class="table-wrapper">
     <table id="leaderboardTable">
       <thead>
