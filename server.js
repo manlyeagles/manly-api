@@ -1103,7 +1103,11 @@ ${buildControls({ season, grade, q, top })}
 </body>
 </html>
 `);
-
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(err.message);
+  }
+});
 
 app.get('/leaderboard/hitting-by-grade', async (req, res) => {
   try {
