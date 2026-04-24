@@ -151,7 +151,7 @@ last_name: playerLookup[id]?.last_name || '',
 
         rows += `
 <tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
-  <td class="center">${p.jersey_number}</td>
+<td class="center">${player.jersey_number}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
   <td class="center"><b>${player.total_games}</b></td>
@@ -495,7 +495,7 @@ const players = filterBySearch(
 
         rows += `
 <tr class="main-row" data-player-id="${player.player_id}" onclick="toggle('${player.player_id}')">
-<td class="center">${p.jersey_number}</td>
+<td class="center">${player.jersey_number}</td>
   <td class="left">${player.first_name}</td>
   <td class="left">${player.last_name}</td>
   <td class="center">${player.gp}</td>
