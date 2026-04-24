@@ -83,6 +83,17 @@ app.get('/leaderboard/games', async (req, res) => {
 
     const json = await safeFetchJson(url);
     const data = Array.isArray(json) ? json : json.data;
+const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
+
+const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name,jersey_number&player_id=in.(${playerIds.join(',')})`;
+
+const playersJson = await safeFetchJson(playersUrl);
+const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
+
+const playerLookup = {};
+playersData.forEach(p => {
+  playerLookup[p.player_id] = p;
+});
 
     if (!Array.isArray(data)) {
       return res.status(500).send('Invalid stats response');
@@ -97,9 +108,9 @@ app.get('/leaderboard/games', async (req, res) => {
 
       if (!playersMap[id]) {
         playersMap[id] = {
-    jersey_number: Number(p.jersey_number) || '',
-  first_name: playerLookup[id]?.first_name || '',
-  last_name: playerLookup[id]?.last_name || '',
+jersey_number: playerLookup[id]?.jersey_number || '',
+first_name: playerLookup[id]?.first_name || '',
+last_name: playerLookup[id]?.last_name || '',
          total_games: 0,
           seasons: {}
         };
@@ -321,6 +332,17 @@ app.get('/leaderboard/hitting', async (req, res) => {
 
     const json = await safeFetchJson(url);
     const data = Array.isArray(json) ? json : json.data;
+const playerIds = [...new Set(data.map(p => p.player_id).filter(Boolean))];
+
+const playersUrl = `${SUPABASE_URL}/rest/v1/players?select=player_id,first_name,last_name,jersey_number&player_id=in.(${playerIds.join(',')})`;
+
+const playersJson = await safeFetchJson(playersUrl);
+const playersData = Array.isArray(playersJson) ? playersJson : playersJson.data;
+
+const playerLookup = {};
+playersData.forEach(p => {
+  playerLookup[p.player_id] = p;
+});
 
     if (!Array.isArray(data)) {
       return res.status(500).send('Invalid stats response');
@@ -334,9 +356,10 @@ app.get('/leaderboard/hitting', async (req, res) => {
 
       if (!playersMap[id]) {
           playersMap[id] = {
-    jersey_number: Number(p.jersey_number) || '',
-  first_name: playerLookup[id]?.first_name || '',
-  last_name: playerLookup[id]?.last_name || '',
+jersey_number: playerLookup[id]?.jersey_number || '',
+first_name: playerLookup[id]?.first_name || '',
+last_name: playerLookup[id]?.last_name || '',
+
                  gp: 0, pa: 0, ab: 0, h: 0,
           single: 0, double: 0, triple: 0, hr: 0,
           rbi: 0, r: 0, so: 0, kl: 0, bb: 0, hbp: 0,
@@ -724,9 +747,9 @@ playersData.forEach(p => {
 
       if (!playersMap[id]) {
           playersMap[id] = {
-    jersey_number: Number(p.jersey_number) || '',
-  first_name: playerLookup[id]?.first_name || '',
-  last_name: playerLookup[id]?.last_name || '',
+jersey_number: playerLookup[id]?.jersey_number || '',
+first_name: playerLookup[id]?.first_name || '',
+last_name: playerLookup[id]?.last_name || '',
           gp: 0,
           gs: 0,
           ip: 0,
