@@ -124,7 +124,7 @@ last_name: playerLookup[id]?.last_name || '',
 
       const s = p.season_id || 'Unknown';
       const g = p.grade || 'Other';
-      const gp = Number(p.app) || 0;
+      const gp = Number(p.gp) || 0;
 
       playersMap[id].total_games += gp;
 
@@ -375,7 +375,7 @@ last_name: playerLookup[id]?.last_name || '',
         };
       }
 
-      const gp = Number(p.app) || 0;
+      const gp = Number(p.gp) || 0;
       const pa = Number(p.pa) || 0;
       const ab = Number(p.ab) || 0;
       const h = Number(p.h) || 0;
@@ -488,7 +488,7 @@ const players = filterBySearch(
     }),
   q
 )
-  .filter(p => qualifier === 'NO' || q || p.pa >= (p.app * 1.1))
+  .filter(p => qualifier === 'NO' || q || p.pa >= (p.gp * 1.1))
   .sort((a, b) => b.avg - a.avg)
   .slice(0, top);
 
