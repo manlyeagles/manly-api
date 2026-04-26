@@ -72,7 +72,9 @@ function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
   <option value="NO" ${qualifier === 'NO' ? 'selected' : ''}>No</option>
 </select>
 
-  <button type="submit">Swing</button>
+<button type="submit">Swing</button>
+<button type="button" onclick="clearFilters()">Reset</button>
+
 </form>
 
 `;
@@ -80,7 +82,7 @@ function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
 
 app.get('/leaderboard/games', async (req, res) => {
   try {
-   const { season, grade, top, qualifier } = getFilters(req, 'games');
+   const { season, grade, q, top, qualifier } = getFilters(req, 'games');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
 
@@ -288,6 +290,9 @@ last_name: playerLookup[id]?.last_name || '',
       table.setAttribute('data-sort-col', colIndex);
       table.setAttribute('data-sort-dir', newDir);
     }
+function clearFilters() {
+  window.location.href = window.location.pathname;
+}
   </script>
 </head>
 <body>
