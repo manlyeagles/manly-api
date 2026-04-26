@@ -879,7 +879,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
   try {
     const { season, grade, q, top, qualifier } = getFilters(req, 'fielding');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=player_id,season_id,grade,tc,a,po,fpct,e,dp,tp,inn,pb,sb,att,cs,cspct,pik`;
+    let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=player_id,season_id,grade,gp,tc,a,po,fpct,e,dp,tp,inn,pb,sb,att,cs,cspct,pik`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -905,14 +905,17 @@ app.get('/leaderboard/fielding', async (req, res) => {
 
       if (!playersMap[id]) {
         playersMap[id] = {
-          jersey_number: playerLookup[id]?.jersey_number || '',
-          first_name: playerLookup[id]?.first_name || '',
-          last_name: playerLookup[id]?.last_name || '',
-          tc: 0, a: 0, po: 0, e: 0, dp: 0, tp: 0,
-          inn: 0, pb: 0, sb: 0, att: 0, cs: 0, pik: 0
-        };
+  jersey_number: playerLookup[id]?.jersey_number || '',
+  first_name: playerLookup[id]?.first_name || '',
+  last_name: playerLookup[id]?.last_name || '',
+  gp: 0,
+  tc: 0, a: 0, po: 0, e: 0, dp: 0, tp: 0,
+  inn: 0, pb: 0, sb: 0, att: 0, cs: 0, pik: 0
+};
+
       }
 
+playersMap[id].gp += Number(p.gp) || 0;
       playersMap[id].tc += Number(p.tc) || 0;
       playersMap[id].a += Number(p.a) || 0;
       playersMap[id].po += Number(p.po) || 0;
@@ -933,7 +936,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
     const cspct = p.att > 0 ? p.cs / p.att : 0;
     return { ...p, fpct, cspct };
   })
-  .filter(p => qualifier === 'NO' || q || p.tc >= (p.gp * 1.8))
+ .filter(p => qualifier === 'NO' || q || p.tc >= (p.gp * 1.3))
   .sort((a, b) => b.fpct - a.fpct)
   .slice(0, top);
 
@@ -944,7 +947,8 @@ app.get('/leaderboard/fielding', async (req, res) => {
   <td class="center">${p.jersey_number}</td>
   <td class="left">${p.first_name}</td>
   <td class="left">${p.last_name}</td>
-  <td class="center">${p.tc}</td>
+<td class="center">${p.gp}</td>  
+<td class="center">${p.tc}</td>
   <td class="center">${p.po}</td>
   <td class="center">${p.a}</td>
   <td class="center">${p.e}</td>
@@ -1040,7 +1044,8 @@ ${buildControls({ season, grade, q, top, qualifier })}
         <th>#</th>
         <th>First</th>
         <th>Last</th>
-        <th>TC</th>
+<th>GP</th>       
+ <th>TC</th>
         <th>PO</th>
         <th>A</th>
         <th>E</th>
@@ -1073,7 +1078,7 @@ ${buildControls({ season, grade, q, top, qualifier })}
 
 app.get('/leaderboard/hitting-by-grade', async (req, res) => {
   try {
-    const { season, grade, top } = getFilters(req, 'hitting-by-grade');
+   const { season, grade, q, top, qualifier } = getFilters(req, 'hitting-by-grade');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=season_id,grade,pa,ab,h,"1B","2B","3B",hr,rbi,r,bb,so,hbp,sf`;
 
@@ -1169,7 +1174,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
     html, body { margin:0; font-family: Arial, sans-serif; }
     body { padding: 20px; }
     h2 { margin-bottom: 12px; }
-    .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }<div class
+    .filters { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
     .filters input, .filters select, .filters button { padding:8px; font-size:13px; }
     .filters button { background:#800000; color:white; border:none; cursor:pointer; }
     .table-wrapper { overflow-x:auto; }
@@ -1222,7 +1227,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
 
 app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   try {
-    const { season, grade, top, qualifier } = getFilters(req, 'pitching-by-grade');
+   const { season, grade, q, top, qualifier } = getFilters(req, 'pitching-by-grade');
 
     let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=season_id,grade,gs,ip,w,l,sv,h,r,er,bb,so,hr`;
 
@@ -1349,7 +1354,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
 
 app.get('/leaderboard/fielding-by-grade', async (req, res) => {
   try {
-   const { season, grade, top, qualifier } = getFilters(req, 'fielding-by-grade');
+  const { season, grade, q, top, qualifier } = getFilters(req, 'fielding-by-grade');
 
     let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=season_id,grade,tc,a,po,e,dp,tp,inn,pb,sb,att,cs,pik`;
 
