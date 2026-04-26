@@ -122,7 +122,7 @@ playersData.forEach(p => {
   total_games: 0,
   seasons: {}
 };
-
+}
       const s = p.season_id || 'Unknown';
       const g = p.grade || 'Other';
       const gp = Number(p.gp) || 0;
@@ -916,7 +916,6 @@ app.get('/leaderboard/fielding', async (req, res) => {
   tc: 0, a: 0, po: 0, e: 0, dp: 0, tp: 0,
   inn: 0, pb: 0, sb: 0, att: 0, cs: 0, pik: 0
 };
-
       }
 
 playersMap[id].gp += Number(p.gp) || 0;
