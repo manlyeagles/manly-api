@@ -42,7 +42,7 @@ function filterBySearch(players, q) {
     return name.includes(q);
   });
 }
-function buildGamesTable(players) {
+function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
   return `
 <form class="filters" method="get">
   <input type="text" name="q" placeholder="Search player..." value="${q || ''}" />
@@ -55,11 +55,11 @@ function buildGamesTable(players) {
   </select>
 
   <select name="season">
-  <option value="">All Seasons</option>
-  ${['2025/26','2024/25','2023/24','2022/23'].map(s => `
-    <option value="${s}" ${season === s ? 'selected' : ''}>${s}</option>
-  `).join('')}
-</select>
+    <option value="">All Seasons</option>
+    ${['2025/26','2024/25','2023/24','2022/23'].map(s => `
+      <option value="${s}" ${season === s ? 'selected' : ''}>${s}</option>
+    `).join('')}
+  </select>
 
   <select name="top">
     ${[10, 20, 30, 40, 50, 100].map(n => `
@@ -67,18 +67,17 @@ function buildGamesTable(players) {
     `).join('')}
   </select>
 
-<select name="qualifier">
-  <option value="YES" ${qualifier !== 'NO' ? 'selected' : ''}>Yes</option>
-  <option value="NO" ${qualifier === 'NO' ? 'selected' : ''}>No</option>
-</select>
+  <select name="qualifier">
+    <option value="YES" ${qualifier !== 'NO' ? 'selected' : ''}>Yes</option>
+    <option value="NO" ${qualifier === 'NO' ? 'selected' : ''}>No</option>
+  </select>
 
-<button type="submit">Swing</button>
-<button type="button" onclick="clearFilters()">Reset</button>
-
+  <button type="submit">Swing</button>
+  <button type="button" onclick="clearFilters()">Reset</button>
 </form>
-
 `;
 }
+
 
 app.get('/leaderboard/games', async (req, res) => {
   try {
@@ -141,7 +140,7 @@ last_name: playerLookup[id]?.last_name || '',
   .slice(0, top);
 
 
-    function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
+   function buildGamesTable(players) {
       let rows = '';
 
       players.forEach((player, index) => {
