@@ -124,7 +124,7 @@ last_name: playerLookup[id]?.last_name || '',
 
       const s = p.season_id || 'Unknown';
       const g = p.grade || 'Other';
-      const gp = Number(p.gp) || 0;
+      const gp = Number(p.app) || 0;
 
       playersMap[id].total_games += gp;
 
@@ -375,7 +375,7 @@ last_name: playerLookup[id]?.last_name || '',
         };
       }
 
-      const gp = Number(p.gp) || 0;
+      const gp = Number(p.app) || 0;
       const pa = Number(p.pa) || 0;
       const ab = Number(p.ab) || 0;
       const h = Number(p.h) || 0;
@@ -488,7 +488,7 @@ const players = filterBySearch(
     }),
   q
 )
-  .filter(p => qualifier === 'NO' || q || p.pa >= (p.gp * 1.1))
+  .filter(p => qualifier === 'NO' || q || p.pa >= (p.app * 1.1))
   .sort((a, b) => b.avg - a.avg)
   .slice(0, top);
 
@@ -723,7 +723,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
   try {
    const { season, grade, q, top, qualifier } = getFilters(req, 'pitching');
 
-    let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=player_id,season_id,grade,gp,gs,ip,w,l,sv,h,r,er,bb,so,hr`;
+    let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=player_id,season_id,grade,app,gs,ip,w,l,sv,h,r,er,bb,so,hr`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
     if (grade) url += `&grade=eq.${encodeURIComponent(grade)}`;
@@ -752,14 +752,14 @@ app.get('/leaderboard/pitching', async (req, res) => {
           jersey_number: playerLookup[id]?.jersey_number || '',
           first_name: playerLookup[id]?.first_name || '',
           last_name: playerLookup[id]?.last_name || '',
-          gp: 0, gs: 0, ip: 0,
+          app: 0, gs: 0, ip: 0,
           w: 0, l: 0, sv: 0,
           h: 0, r: 0, er: 0,
           bb: 0, so: 0, hr: 0
         };
       }
 
-      playersMap[id].gp += Number(p.gp) || 0;
+      playersMap[id].app += Number(p.app) || 0;
       playersMap[id].gs += Number(p.gs) || 0;
       playersMap[id].ip += Number(p.ip) || 0;
       playersMap[id].w += Number(p.w) || 0;
@@ -790,7 +790,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
         const era = p.ip > 0 ? (p.er * 9) / p.ip : 0;
         return { ...p, era };
       })
-      .filter(p => qualifier === 'NO' || q || p.ip >= (p.gp * 2.2))
+      .filter(p => qualifier === 'NO' || q || p.ip >= (p.app * 2.2))
       .sort((a, b) => a.era - b.era)
       .slice(0, top);
 
@@ -803,7 +803,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
   <td class="left">
     <a href="/player/${p.player_id}" target="_top">${p.last_name}</a>
   </td>
-  <td class="center">${p.gp}</td>
+  <td class="center">${p.app}</td>
   <td class="center">${p.gs}</td>
   <td class="center">${formatIP(p.ip)}</td>
   <td class="center">${p.w}</td>
@@ -851,7 +851,7 @@ ${buildControls({ season, grade, q, top, qualifier })}
 <thead>
 <tr>
 <th>#</th><th>First</th><th>Last</th>
-<th>GP</th><th>GS</th><th>IP</th>
+<th>APP</th><th>GS</th><th>IP</th>
 <th>W</th><th>L</th><th>SV</th>
 <th>H</th><th>R</th><th>ER</th>
 <th>BB</th><th>SO</th><th>HR</th>
@@ -915,7 +915,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
 
       }
 
-playersMap[id].gp += Number(p.gp) || 0;
+playersMap[id].gp += Number(p.app) || 0;
       playersMap[id].tc += Number(p.tc) || 0;
       playersMap[id].a += Number(p.a) || 0;
       playersMap[id].po += Number(p.po) || 0;
@@ -936,7 +936,7 @@ playersMap[id].gp += Number(p.gp) || 0;
     const cspct = p.att > 0 ? p.cs / p.att : 0;
     return { ...p, fpct, cspct };
   })
- .filter(p => qualifier === 'NO' || q || p.tc >= (p.gp * 1.3))
+ .filter(p => qualifier === 'NO' || q || p.tc >= (p.app * 1.3))
   .sort((a, b) => b.fpct - a.fpct)
   .slice(0, top);
 
@@ -947,7 +947,7 @@ playersMap[id].gp += Number(p.gp) || 0;
   <td class="center">${p.jersey_number}</td>
   <td class="left">${p.first_name}</td>
   <td class="left">${p.last_name}</td>
-<td class="center">${p.gp}</td>  
+<td class="center">${p.app}</td>  
 <td class="center">${p.tc}</td>
   <td class="center">${p.po}</td>
   <td class="center">${p.a}</td>
