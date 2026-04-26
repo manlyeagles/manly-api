@@ -42,7 +42,7 @@ function filterBySearch(players, q) {
     return name.includes(q);
   });
 }
-function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
+function buildGamesTable(players) {
   return `
 <form class="filters" method="get">
   <input type="text" name="q" placeholder="Search player..." value="${q || ''}" />
