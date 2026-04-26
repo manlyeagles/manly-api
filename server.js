@@ -80,7 +80,7 @@ function buildControls({ season, grade, q, top, }) {
 app.get('/leaderboard/games', async (req, res) => {
   try {
    const { season, grade, q, top, } = getFilters(req, 'games');
-
+const qualifier = req.query.qualifier || 'YES';
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
@@ -721,7 +721,7 @@ ${buildControls({ season, grade, q, top, qualifier })}
 app.get('/leaderboard/pitching', async (req, res) => {
   try {
     const { season, grade, q, top } = getFilters(req, 'pitching');
-
+const qualifier = req.query.qualifier || 'YES';
     let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=player_id,season_id,grade,gp,gs,ip,w,l,sv,h,r,er,bb,so,hr`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
@@ -877,7 +877,7 @@ ${rows}
 app.get('/leaderboard/fielding', async (req, res) => {
   try {
     const { season, grade, q, top } = getFilters(req, 'fielding');
-
+const qualifier = req.query.qualifier || 'YES';
     let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=player_id,season_id,grade,tc,a,po,fpct,e,dp,tp,inn,pb,sb,att,cs,cspct,pik`;
 
     if (season) url += `&season_id=eq.${encodeURIComponent(season)}`;
