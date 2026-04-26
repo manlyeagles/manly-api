@@ -29,6 +29,7 @@ function getFilters(req, defaultStatType) {
     grade: req.query.grade || '',
     q: (req.query.q || '').trim().toLowerCase(),
     top: Math.min(Math.max(parseInt(req.query.top || '10', 10), 1), 100),
+    qualifier: req.query.qualifier || 'YES',
     statType: req.query.statType || defaultStatType
   };
 }
@@ -41,7 +42,7 @@ function filterBySearch(players, q) {
     return name.includes(q);
   });
 }
-function buildControls({ season, grade, q, top, }) {
+function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
   return `
 <form class="filters" method="get">
   <input type="text" name="q" placeholder="Search player..." value="${q || ''}" />
@@ -138,7 +139,7 @@ last_name: playerLookup[id]?.last_name || '',
   .slice(0, top);
 
 
-    function buildGamesTable(players) {
+    function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
       let rows = '';
 
       players.forEach((player, index) => {
@@ -327,7 +328,7 @@ ${buildControls({ season, grade, q, top, qualifier })}
 
 app.get('/leaderboard/hitting', async (req, res) => {
   try {
-   const { season, grade, q, top, statType } = getFilters(req, 'hitting');
+   const { season, grade, q, top, qualifier } = getFilters(req, 'hitting');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,pa,ab,h,"1B","2B","3B",hr,rbi,r,so,kl,bb,hbp,roe,fc,ci,avg,obp,slg,ops,sac,sf,lob,pik,qab,qabpct,babip,sb,cs,sbpct,bawrisp,players(first_name,last_name)`;
 
@@ -720,7 +721,7 @@ ${buildControls({ season, grade, q, top, qualifier })}
 
 app.get('/leaderboard/pitching', async (req, res) => {
   try {
-    const { season, grade, q, top } = getFilters(req, 'pitching');
+   const { season, grade, q, top, qualifier } = getFilters(req, 'pitching');
 const qualifier = req.query.qualifier || 'YES';
     let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=player_id,season_id,grade,gp,gs,ip,w,l,sv,h,r,er,bb,so,hr`;
 
@@ -876,7 +877,7 @@ ${rows}
 
 app.get('/leaderboard/fielding', async (req, res) => {
   try {
-    const { season, grade, q, top } = getFilters(req, 'fielding');
+    const { season, grade, q, top, qualifier } = getFilters(req, 'fielding');
 const qualifier = req.query.qualifier || 'YES';
     let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=player_id,season_id,grade,tc,a,po,fpct,e,dp,tp,inn,pb,sb,att,cs,cspct,pik`;
 
