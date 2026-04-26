@@ -915,7 +915,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
 
       }
 
-playersMap[id].gp += Number(p.app) || 0;
+playersMap[id].gp += Number(p.gp) || 0;
       playersMap[id].tc += Number(p.tc) || 0;
       playersMap[id].a += Number(p.a) || 0;
       playersMap[id].po += Number(p.po) || 0;
@@ -936,7 +936,7 @@ playersMap[id].gp += Number(p.app) || 0;
     const cspct = p.att > 0 ? p.cs / p.att : 0;
     return { ...p, fpct, cspct };
   })
- .filter(p => qualifier === 'NO' || q || p.tc >= (p.app * 1.3))
+ .filter(p => qualifier === 'NO' || q || p.tc >= (p.gp * 1.3))
   .sort((a, b) => b.fpct - a.fpct)
   .slice(0, top);
 
@@ -947,7 +947,7 @@ playersMap[id].gp += Number(p.app) || 0;
   <td class="center">${p.jersey_number}</td>
   <td class="left">${p.first_name}</td>
   <td class="left">${p.last_name}</td>
-<td class="center">${p.app}</td>  
+<td class="center">${p.gp}</td>  
 <td class="center">${p.tc}</td>
   <td class="center">${p.po}</td>
   <td class="center">${p.a}</td>
