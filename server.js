@@ -66,6 +66,11 @@ function buildControls({ season, grade, q, top, }) {
     `).join('')}
   </select>
 
+<select name="qualifier">
+  <option value="YES" ${qualifier !== 'NO' ? 'selected' : ''}>Yes</option>
+  <option value="NO" ${qualifier === 'NO' ? 'selected' : ''}>No</option>
+</select>
+
   <button type="submit">Swing</button>
 </form>
 
@@ -286,7 +291,7 @@ last_name: playerLookup[id]?.last_name || '',
 </head>
 <body>
   <h2>All Time Club Games Played${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-${buildControls({ season, grade, q, top, })}
+${buildControls({ season, grade, q, top, qualifier })}
   <div class="table-wrapper">
     <table id="leaderboardTable">
       <thead>
@@ -482,7 +487,7 @@ const players = filterBySearch(
     }),
   q
 )
-  .filter(p => q || p.pa >= (p.gp * 1.1))
+  .filter(p => qualifier === 'NO' || q || p.pa >= (p.gp * 1.1))
   .sort((a, b) => b.avg - a.avg)
   .slice(0, top);
 
@@ -668,7 +673,7 @@ const players = filterBySearch(
 </head>
 <body>
   <h2>All Time Club Hitting${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-${buildControls({ season, grade, q, top, })}
+${buildControls({ season, grade, q, top, qualifier })}
   <div class="table-wrapper">
     <table id="leaderboardTable">
       <thead>
@@ -784,7 +789,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
         const era = p.ip > 0 ? (p.er * 9) / p.ip : 0;
         return { ...p, era };
       })
-      .filter(p => q || p.ip >= (p.gp * 2.2))
+      .filter(p => qualifier === 'NO' || q || p.ip >= (p.gp * 2.2))
       .sort((a, b) => a.era - b.era)
       .slice(0, top);
 
@@ -838,7 +843,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
 
 <h2>All Time Club Pitching${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-${buildControls({ season, grade, q, top })}
+${buildControls({ season, grade, q, top, qualifier })}
 
 <div class="table-wrapper">
 <table>
@@ -927,7 +932,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
     const cspct = p.att > 0 ? p.cs / p.att : 0;
     return { ...p, fpct, cspct };
   })
-  .filter(p => q || p.tc >= 10)
+  .filter(p => qualifier === 'NO' || q || p.tc >= (p.gp * 1.8))
   .sort((a, b) => b.fpct - a.fpct)
   .slice(0, top);
 
@@ -1025,7 +1030,7 @@ app.get('/leaderboard/fielding', async (req, res) => {
 
 <h2>All Time Club Fielding${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-${buildControls({ season, grade, q, top })}
+${buildControls({ season, grade, q, top, qualifier })}
 
 <div class="table-wrapper">
   <table>
@@ -1178,7 +1183,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
 <body>
   <h2>All Time Club Hitting By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
 
-  ${buildControls({ season, grade, q: '', top })}
+  ${buildControls({ season, grade, q, top, qualifier })}
 
   <div class="table-wrapper">
     <table>
@@ -1318,7 +1323,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
 </head>
 <body>
   <h2>All Time Club Pitching By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-  ${buildControls({ season, grade, q: '', top })}
+  ${buildControls({ season, grade, q, top, qualifier })}
   <div class="table-wrapper">
     <table>
       <thead>
@@ -1440,7 +1445,7 @@ app.get('/leaderboard/fielding-by-grade', async (req, res) => {
 </head>
 <body>
   <h2>All Time Club Fielding By Grade${season ? ` - ${season}` : ''}${grade ? ` (${grade})` : ''}</h2>
-  ${buildControls({ season, grade, q: '', top })}
+  ${buildControls({ season, grade, q, top, qualifier })}
   <div class="table-wrapper">
     <table>
       <thead>
