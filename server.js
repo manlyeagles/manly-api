@@ -114,14 +114,14 @@ playersData.forEach(p => {
       if (!id) return;
 
       if (!playersMap[id]) {
-        playersMap[id] = {
-jersey_number: playerLookup[id]?.jersey_number || '',
-first_name: playerLookup[id]?.first_name || '',
-last_name: playerLookup[id]?.last_name || '',
-         total_games: 0,
-          seasons: {}
-        };
-      }
+       playersMap[id] = {
+  player_id: id,
+  jersey_number: playerLookup[id]?.jersey_number || '',
+  first_name: playerLookup[id]?.first_name || '',
+  last_name: playerLookup[id]?.last_name || '',
+  total_games: 0,
+  seasons: {}
+};
 
       const s = p.season_id || 'Unknown';
       const g = p.grade || 'Other';
@@ -800,7 +800,7 @@ app.get('/leaderboard/pitching', async (req, res) => {
 
     const rows = players.map(p => `
 <tr>
-  <td class="center">${p.jersey_number}</td>
+ <td class="center">${p.jersey_number}</td>
   <td class="left">
     <a href="/player/${p.player_id}" target="_top">${p.first_name}</a>
   </td>
