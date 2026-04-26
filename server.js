@@ -80,7 +80,7 @@ function buildControls({ season, grade, q, top, qualifier = 'YES' }) {
 
 app.get('/leaderboard/games', async (req, res) => {
   try {
-   const { season, grade, q, top, } = getFilters(req, 'games');
+   const { season, grade, top, qualifier } = getFilters(req, 'games');
 
     let url = `${SUPABASE_URL}/rest/v1/player_season_stats?select=player_id,season_id,grade,gp,players(first_name,last_name)`;
 
@@ -1222,7 +1222,7 @@ app.get('/leaderboard/hitting-by-grade', async (req, res) => {
 
 app.get('/leaderboard/pitching-by-grade', async (req, res) => {
   try {
-    const { season, grade, top } = getFilters(req, 'pitching-by-grade');
+    const { season, grade, top, qualifier } = getFilters(req, 'pitching-by-grade');
 
     let url = `${SUPABASE_URL}/rest/v1/player_pitching_stats?select=season_id,grade,gs,ip,w,l,sv,h,r,er,bb,so,hr`;
 
@@ -1349,7 +1349,7 @@ app.get('/leaderboard/pitching-by-grade', async (req, res) => {
 
 app.get('/leaderboard/fielding-by-grade', async (req, res) => {
   try {
-    const { season, grade, top } = getFilters(req, 'fielding-by-grade');
+   const { season, grade, top, qualifier } = getFilters(req, 'fielding-by-grade');
 
     let url = `${SUPABASE_URL}/rest/v1/player_fielding_stats?select=season_id,grade,tc,a,po,e,dp,tp,inn,pb,sb,att,cs,pik`;
 
